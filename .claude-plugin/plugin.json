@@ -1,0 +1,12 @@
+{
+  "name": "cdaniele-skills",
+  "version": "0.1.0",
+  "description": "Personal collection of agent skills.",
+  "author": {
+    "name": "c-daniele"
+  },
+  "license": "Apache-2.0",
+  "skills": [
+    "./skills/agentic-kickoff"
+  ]
+}

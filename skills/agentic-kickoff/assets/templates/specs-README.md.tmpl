@@ -1,0 +1,33 @@
+# {{PROJECT_NAME}} Specifications
+
+Each approved domain specification is normative only for the behavior it
+explicitly covers. The Manifesto remains the constitution, and the masterplan
+owns uncovered project intent and roadmap. An empty index does not displace
+those documents as sources of truth.
+
+## Domain index
+
+{{SPEC_DOMAINS}}
+
+## Conventions
+
+- Every spec states its status, scope and explicit exclusions.
+- Requirements use stable identifiers (`R1`, `R2`, ...) and normative
+  **MUST**, **SHOULD** and **MAY** language.
+- Invariants use stable identifiers (`I1`, `I2`, ...).
+- Retired identifiers are retained with a reason; they are not renumbered.
+- Cross-references cite real code, related specs and verification evidence.
+- Unknown or unverified behavior is labelled instead of being asserted.
+- When covered behavior changes, update its spec in the same change.
+- A rule has one owner; related documents link rather than copy it.
+
+Related documents: [Manifesto](../../MANIFESTO.md) and
+[masterplan](../../.backlog/masterplan/MASTERPLAN.md).
+<!-- BEGIN: standards -->
+
+Coding standards: [`docs/coding-standards.md`](../coding-standards.md).
+<!-- END: standards -->
+
+<!-- guidance: every linked domain file must be created in the same approved
+write. Use "No domain specifications have been approved yet." when the user
+wants the index but no domain content. -->

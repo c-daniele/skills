@@ -1,0 +1,123 @@
+# {{PROJECT_NAME}} - Agent Guide
+
+{{ONE_LINER}}
+
+## Start here
+
+1. Read [the masterplan](.backlog/masterplan/MASTERPLAN.md) for current state,
+   goals, constraints, roadmap, vocabulary and open questions.
+2. Run `backlog instructions overview`, then search and inspect relevant tasks.
+3. Before creating, executing or finalizing a task, read the matching Backlog
+   guide named by the overview.
+4. Keep changes within the approved task. Record unrelated discoveries as
+   proposed follow-up work instead of expanding scope silently.
+
+The active Backlog task is the execution-plan record. The masterplan contains
+only cross-task state and direction; it does not duplicate task status or
+implementation narrative.
+
+## Working agreement
+
+{{WORKING_AGREEMENT}}
+
+## Language and scope
+
+Kickoff-generated project records are written in English. Follow the project's
+approved localization requirements for product copy and user-facing content.
+Do not translate or otherwise rewrite unrelated files merely because a task
+touches their area.
+
+When documentation or code disagrees, resolve it within the current task when
+that correction is in scope. Otherwise record the conflict as follow-up work.
+Do not make unrelated “on sight” changes.
+
+## Document map
+
+- [`.backlog/masterplan/MASTERPLAN.md`](.backlog/masterplan/MASTERPLAN.md):
+  current state, outcomes, constraints, roadmap, glossary and open questions.
+- `backlog task list --plain` / `.backlog/tasks/`: executable work; mutate it
+  only through the Backlog CLI.
+- [`MANIFESTO.md`](MANIFESTO.md): project constitution and boundaries.
+<!-- BEGIN: specs -->
+- [`docs/specs/`](docs/specs/README.md): normative behavior for the domains each
+  approved spec explicitly covers.
+<!-- END: specs -->
+<!-- BEGIN: standards -->
+- [`docs/coding-standards.md`](docs/coding-standards.md): approved repository
+  and stack-specific coding rules.
+<!-- END: standards -->
+<!-- BEGIN: journal -->
+- `.backlog/docs/journal/`: completed-work history, maintained through
+  `backlog doc create` and `backlog doc update`.
+<!-- END: journal -->
+<!-- BEGIN: decisions -->
+- `.backlog/decisions/`: decisions that outlive one task, created through
+  `backlog decision create`.
+<!-- END: decisions -->
+- `.backlog/brainstorming/`: temporary exploration; nothing authoritative lives
+  here. Create a dated idea directory before linking to it.
+
+## Development workflow
+
+1. **Orient:** read the masterplan and relevant Backlog task.
+2. **Activate:** set eligible work to the board's configured active status,
+   inspect current code and tests, then record the researched implementation
+   plan on the task. Read valid statuses from `backlog task edit --help`; do not
+   assume default names.
+3. **Explore:** keep disposable notes under
+   `.backlog/brainstorming/YYYY-MM-DD.<IdeaTitle>/`.
+4. **Implement:** follow approved specifications and coding standards when they
+   exist. Keep the change focused on the task.
+5. **Verify:** prove each acceptance criterion with objective evidence and run
+   the narrowest relevant checks before broader checks.
+<!-- BEGIN: tests -->
+
+    Approved project checks:
+
+    ```bash
+    {{TEST_COMMANDS}}
+    ```
+<!-- END: tests -->
+6. **Finalize:** check only acceptance criteria supported by evidence, record the
+   evidence in the final summary, update cross-task masterplan facts, and move
+   the task to the configured terminal status.
+<!-- BEGIN: journal -->
+7. **Journal:** {{JOURNAL_POLICY}}
+<!-- END: journal -->
+<!-- BEGIN: decisions -->
+- **Decisions:** {{DECISION_POLICY}}
+<!-- END: decisions -->
+
+<!-- BEGIN: setup -->
+## Environment setup
+
+```bash
+{{DEV_SETUP_COMMANDS}}
+```
+<!-- END: setup -->
+
+## Review policy
+
+{{REVIEW_POLICY}}
+
+<!-- BEGIN: git -->
+## Git policy
+
+{{GIT_POLICY}}
+<!-- END: git -->
+
+## Backlog CLI boundaries
+
+- Use the CLI for tasks, drafts, documents and milestones; never hand-edit their
+  Markdown files.
+- A decision body is the sole direct-edit exception: run
+  `backlog decision create`, then fill Context, Decision and Consequences in the
+  generated decision file because the CLI has no content-update command.
+- `backlog task edit` cannot target a task under `.backlog/completed/`. Do not
+  move completed task files by hand during normal work; report a correction that
+  requires archival maintenance.
+- Changing a task title does not rename its file. Treat the filename as stable
+  Backlog metadata rather than renaming it by hand.
+
+<!-- guidance: this is the approved working agreement. Do not insert generic
+workflow preferences that were not approved during kickoff. -->
