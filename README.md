@@ -26,13 +26,32 @@ Structure is loosely inspired by [mattpocock/skills](https://github.com/mattpoco
 
 ## Installation
 
+### Claude Code (plugin)
+
+Install the whole set as a managed bundle, straight from GitHub:
+
+```text
+/plugin install cdaniele-skills --marketplace c-daniele/skills
+```
+
+Or from a shell:
+
+```bash
+claude plugin marketplace add c-daniele/skills
+claude plugin install cdaniele-skills@cdaniele-skills
+```
+
+Components are namespaced under the plugin name (`cdaniele-skills:agentic-kickoff`). Users receive updates when `version` in `.claude-plugin/plugin.json` changes.
+
+### Other agents (skills.sh)
+
 Copy editable files into your project with [skills.sh](https://skills.sh):
 
 ```bash
-npx skills@latest add <your-github-user>/skills
+npx skills@latest add c-daniele/skills --skill agentic-kickoff
 ```
 
-Or, for Claude Code, install this repo as a plugin (see `.claude-plugin/plugin.json`). It ships the whole set as a managed bundle.
+Add `-g` for a user-level install, or `--copy` to get real files instead of symlinks.
 
 ## Repo layout
 
@@ -45,6 +64,7 @@ skills/
     scripts/        # optional: helper/verification scripts
 .claude-plugin/
   plugin.json       # plugin manifest listing each skill
+  marketplace.json  # catalog that lets Claude Code install the plugin
 scripts/
   verify-skills.sh  # checks every skill has a valid SKILL.md
 AGENTS.md             # working agreement for agents in this repo

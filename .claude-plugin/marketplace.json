@@ -1,0 +1,18 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
+  "name": "cdaniele-skills",
+  "description": "Personal collection of agent skills: small, composable, and owned.",
+  "owner": {
+    "name": "c-daniele",
+    "url": "https://github.com/c-daniele"
+  },
+  "plugins": [
+    {
+      "name": "cdaniele-skills",
+      "source": "./",
+      "description": "Project kickoff and specification workflows for coding agents.",
+      "category": "productivity",
+      "tags": ["skills", "kickoff", "spec-driven-development"]
+    }
+  ]
+}
