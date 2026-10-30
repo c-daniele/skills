@@ -1,14 +1,16 @@
 # Phase 2 - Task decomposition
 
-Phase 2 turns the approved roadmap into Backlog tasks that can be executed
-without the kickoff conversation. It starts only after the user explicitly
-chooses to continue beyond the documents-only checkpoint.
+Phase 2 turns the approved roadmap, or a scoped approved OpenSpec change, into
+Backlog tasks that can be executed without the kickoff conversation. It starts
+only after the user explicitly chooses to continue beyond the documents-only
+checkpoint. For brownfield adoption, use the discovered board directory and
+source map instead of assuming a `.backlog/` board or a kickoff masterplan.
 
 Keep resumable state in the dated decomposition directory described in
 `SKILL.md`, rendered from `assets/templates/TASK-TREE.md.tmpl`. Update it after
 each interview answer, proposal revision, approval and successful task creation.
 Discover and resume exactly one existing state file before creating another;
-validate its project identity against the board and masterplan.
+validate its project identity against the board and any existing identity owner.
 
 ## Discipline
 
@@ -19,11 +21,18 @@ validate its project identity against the board and masterplan.
 - Every top-level task, epic and child needs at least one independently testable
   acceptance criterion before approval.
 - Never create tasks from an unapproved tree.
+- Follow the guide's delegation policy. Scoping/planning stay with the primary
+  by default; an explicitly authorized planner may return a bounded proposal,
+  and a reviewer may check criterion/scenario coverage. The primary retains
+  user questions, approval, task creation and resumable state. Do not dispatch
+  implementation during decomposition.
 
 ## Step 1 - Read context and derive candidate work
 
 Read the Manifesto, masterplan, Agent Guide and every approved domain spec that
-applies. Run `backlog instructions overview` and
+applies, or the equivalent owners in the brownfield source map. For OpenSpec,
+read `docs/spec-workflow.md` plus the selected change's approved proposal, delta
+specs, applicable baseline and design. Run `backlog instructions overview` and
 `backlog instructions task-creation`, then search existing tasks before creating
 anything.
 
@@ -37,6 +46,12 @@ Map roadmap outcomes to work:
 
 Present the candidate epic/top-level list with one-line outcomes and obtain
 confirmation before interviewing each one.
+
+In the hybrid profile, decompose the next approved change, not the entire future
+roadmap. Reuse its requirement/scenario answers rather than interviewing them
+again. Search existing tasks using the `change-<change-id>` label and scope before
+creating work. A new behavior discovered during decomposition goes back to the
+spec and scope review; task criteria must not become an alternate specification.
 
 ## Step 2 - Interview each workstream
 
@@ -71,6 +86,14 @@ Read the active board's allowed values from `backlog task create --help`. For
 - priority, parent and dependencies;
 - references or documentation paths when needed;
 - `Assumption: ...` lines for every dependent temporary choice.
+
+For the hybrid profile, also include label `change-<change-id>`, immutable change
+ID, requirement IDs (or exact legacy headings), scenario names and actual
+spec-file references. Use `assets/templates/BACKLOG-SPEC-TASK.md.tmpl` for the
+description; it is input to the CLI, never a hand-written task file. Each
+criterion states a verifiable slice of the linked contract, not merely “see
+spec”. Cover every changed scenario with a task or named existing verification
+evidence. Do not mirror these tasks in an OpenSpec checklist or delivery ledger.
 
 Adjust and re-present the complete tree after scope changes. Approval applies to
 the exact tree shown, including parent acceptance criteria.
@@ -120,7 +143,7 @@ Rules:
 
 After creation, use `backlog task list --json` and
 `backlog task view <ID> --json` to verify every title, type, priority, status,
-parent, dependency, reference and acceptance criterion against the approved
+label, parent, dependency, reference and acceptance criterion against the approved
 proposal.
 If interrupted, verify each recorded ID against its approved entry. For an
 unresolved attempt, search by its exact title and creation-time window, then
@@ -131,9 +154,10 @@ only after every approved task passes verification.
 ## Assumptions and open questions
 
 - A deferred question with no dependent choice is recorded only as a masterplan
-  open question.
+  open question, or in the brownfield source map's designated question owner.
 - A temporary choice that could affect design is recorded **both** as a
-  masterplan open question and as `Assumption: ...` in every dependent task.
+  question in the designated owner and as `Assumption: ...` in every dependent
+  task. Unresolved business behavior cannot become an approved normative rule.
 - A wording clarification that cannot affect implementation may remain local to
   the task description.
 
@@ -146,4 +170,8 @@ Report all recorded assumptions and their related open questions.
 - Every task, including parents, has at least one acceptance criterion.
 - Parentage, dependencies and references resolve.
 - No implementation plan was invented for future work.
-- Every design-affecting assumption has a corresponding masterplan question.
+- Every design-affecting assumption has a question in the masterplan or the
+  brownfield source map's designated question owner.
+- For OpenSpec, all changed scenarios have a task/evidence mapping, the expected
+  change label and resolvable spec references. Task creation is not implementation
+  completion and does not authorize archiving the change.

@@ -1,18 +1,33 @@
 ---
 name: agentic-kickoff
-description: "Bootstrap or resume a greenfield project kickoff with a constitution, always-current masterplan, agent guide, optional coding standards or specs, and a Backlog.md board. Use only at project time zero, or when the user asks to scope a new project, write its initial masterplan, make a new repository ready for coding agents, or continue an interrupted agentic kickoff. Supports a documents-only stopping point and optional task decomposition with testable acceptance criteria."
+description: "Bootstrap or resume a greenfield project kickoff, or adopt a specification workflow in an existing brownfield repository. Use when the user asks to scope a new project, write its initial masterplan, make a repository ready for coding agents, continue an interrupted kickoff, or introduce OpenSpec specifications with Backlog.md task management. Produces project context and an agent agreement, with optional plain specs or a lean OpenSpec + Backlog workflow, explicit roles and optional independent review. Supports documents-only completion, incremental brownfield baselines and optional task decomposition. Not for ordinary implementation tasks in an already configured project."
 license: Apache-2.0
-compatibility: "Runtime requires Bash and Backlog.md >=1.50.1 and <2.0.0. Git is optional. Installing Backlog.md requires a currently supported Node.js LTS release and npm. Writes only inside the target project directory."
+compatibility: "Runtime requires Bash and Backlog.md >=1.50.1 and <2.0.0. The optional hybrid profile uses OpenSpec project-local schemas (smoke-tested with 1.4.0); inspect and validate the installed CLI. Git is optional. Installing CLIs requires a supported Node.js LTS release and npm. Writes only inside the target project directory."
 metadata:
   author: sch
-  version: "1.1.0"
+  version: "1.3.0"
 ---
 
 # Agentic Kickoff
 
-Set up a brand-new project so a human and an AI coding agent can work on it the
-same way: a constitution, an always-current masterplan, an agent guide, coding
-standards and a Backlog task board.
+Set up a new project or introduce a specification workflow into an existing one.
+Give humans and coding agents clear owners for intent, behavior, design and
+execution. Backlog.md remains the only task board.
+
+## Choose the entry route
+
+- **New project or interrupted kickoff:** follow Phases 0-3 below.
+- **Existing project adopting SDD, including a completed kickoff:** follow
+  [brownfield adoption](references/brownfield-adoption.md) before any setup
+  mutation. Reuse existing context and task configuration; interview only gaps.
+- **Specification profile:** keep no-specs and plain Markdown modes available.
+  When the user asks for structured SDD, recommend
+  [OpenSpec + Backlog](references/spec-driven-workflow.md): direct tasks for
+  contract-preserving work, `backlog-lean` for behavior changes, and
+  `backlog-design` when technical decisions need a design artifact.
+
+The kickoff/adoption can finish with approved documents and zero tasks. This
+skill installs the working agreement; ordinary execution follows that agreement.
 
 ## What this skill produces
 
@@ -21,9 +36,16 @@ standards and a Backlog task board.
 | `MANIFESTO.md` | Project constitution; wins on conflict with any other document. |
 | `.backlog/masterplan/MASTERPLAN.md` | Always-current state, roadmap, decisions, open questions. |
 | `AGENTS.md` | Agent entry point and working agreement. |
+| `docs/agent-roles.md` | Optional role contracts, bounded delegation and review-result handling. |
 | `docs/coding-standards.md` | Per-language rules, when the user wants them now. |
 | `.backlog/` | Backlog.md board: tasks, docs (journal), decisions. |
-| `docs/specs/` | Normative specs. **Only when the user asks.** |
+| `docs/specs/` | Optional plain-spec profile. |
+| `docs/spec-workflow.md` | Optional hybrid profile: source map, depth policy, handoff and closure. |
+| `openspec/config.yaml`, `openspec/schemas/` | Optional project-local `backlog-lean` and `backlog-design` workflows. |
+| `openspec/specs/`, `openspec/changes/` | Optional approved baselines and scoped behavioral changes. |
+
+In brownfield adoption, use the discovered board directory and existing document
+owners instead of assuming the greenfield `.backlog/` layout.
 
 ## Hard rules
 
@@ -33,21 +55,41 @@ standards and a Backlog task board.
    question and mark any dependent guess `Assumption: ...`.
 3. **Approval before durable writes.** Propose, get approval, then write.
    `backlog init` and directory creation are setup, not proposals.
-4. **No specs unless asked.** Without specs, no generated document may link to
-   `docs/specs/`; strip those blocks while rendering.
+4. **Specs are opt-in.** Select no specs, plain specs or OpenSpec + Backlog.
+   Without the selected profile, strip its generated links and conditional
+   blocks. Never create two normative owners for the same requirement.
 5. **English kickoff records.** The conversation may be in another language;
    files produced directly by this kickoff are English. Product copy, code
    comments and future documentation follow the approved language policy in
    `AGENTS.md`.
 6. **No dangling links.** Every relative link in a written file must resolve.
-7. **Backlog files are CLI-only.** Never hand-edit `.backlog/tasks/`,
-   `.backlog/docs/` or `.backlog/milestones/`. Decision bodies are the sole
-   exception: after `backlog decision create`, fill the generated decision
+7. **Backlog files are CLI-only.** Never hand-edit the board's tasks, documents
+   or milestones (under `.backlog/` in a fresh kickoff). Decision bodies are the
+   sole exception: after `backlog decision create`, fill the generated decision
    file because Backlog.md has no decision-content update command.
 8. **A long opening description is input, not an interview.** Still walk the
    checklist; extract what was said and ask about the rest.
 9. **Ask before acting on the machine** when installing software or creating a
    git repository.
+10. **Separate behavior, design and execution.** Requirements state observable
+    contracts, design explains mechanisms, Backlog owns tasks and evidence.
+    Never mirror task status in OpenSpec. Artifact readiness is not completion.
+11. **Delegation is explicit and bounded.** Role names do not authorize agent
+    calls. Follow the approved delegation policy and runtime restrictions; keep
+    one writer per shared artifact and distinguish independent from self-review.
+
+## Roles and optional delegation
+
+Read [references/delegation.md](references/delegation.md) when defining the working
+agreement or adopting roles. Keep scoping and planning with the primary agent;
+recommend an on-demand read-only reviewer as the first delegate. An explorer can
+answer bounded brownfield questions when authorized. Separate planning or
+implementation agents require explicit permission and a bounded assignment.
+
+Record the approved policy in the agent guide, including a single-agent choice.
+When selected, generate role contracts independently of the spec profile. Use
+the existing review points; adding roles creates no new approval gates. Kickoff
+and Phase 2 remain advisory/document/task work, never implicit implementation.
 
 ## Phase 0 - Preconditions
 
@@ -63,18 +105,22 @@ target project once a board exists.
 2. Before classifying the repository, run `backlog config list`. If it succeeds,
    an existing Backlog project is already discoverable here (including a root
    config or custom board directory), so this is not a fresh default-layout
-   kickoff. Continue only when it is this skill's resumable or completed state;
-   otherwise stop rather than reinitialize or relocate it.
+   kickoff. Continue only when it is this skill's resumable or completed state,
+   or route an explicit adoption request to the brownfield reference. Otherwise
+   stop rather than reinitialize or relocate it.
 3. Inventory the exact core and optional output paths: `.backlog/config.yml`,
    `MANIFESTO.md`, `AGENTS.md`, `.backlog/masterplan/MASTERPLAN.md`,
-   `docs/coding-standards.md` and `docs/specs/`. Preserve this initial inventory
+   `docs/coding-standards.md`, `docs/agent-roles.md`, `docs/specs/`,
+   `docs/spec-workflow.md` and `openspec/` (config, schemas, specs and changes).
+   Preserve this initial inventory
    in the kickoff brief; an unselected pre-existing optional path is left alone.
    A root-level `MASTERPLAN.md` alone is not one of this skill's targets.
 4. Classify the repository without guessing. At every branch, compare identity
    only with stores that exist: approved project name versus Backlog
    `projectName`; name and slug versus the kickoff brief when present; name and
    slug versus the masterplan when present. Stop on any available mismatch:
-   - No `.backlog/` and no core document is a fresh kickoff; continue below.
+   - No `.backlog/`, core document or existing OpenSpec setup is a fresh kickoff;
+     continue below. Existing project context can instead require adoption.
    - A board config with no core documents and no kickoff brief is an interrupted
      post-initialization state. Resume only if its project name matches the
      approved identity and its task board is empty; create the brief immediately.
@@ -134,12 +180,18 @@ brief, following [references/artifacts.md](references/artifacts.md):
 - `MANIFESTO.md` from `assets/templates/MANIFESTO.md.tmpl`
 - `.backlog/masterplan/MASTERPLAN.md` from `assets/templates/MASTERPLAN.md.tmpl`
 - `AGENTS.md` from `assets/templates/AGENTS.md.tmpl`
+- `docs/agent-roles.md` from `assets/templates/agent-roles.md.tmpl`, only when
+  selected; fill the actual policy-owning guide link and delegation policy
 - `docs/coding-standards.md` from `assets/templates/coding-standards.md.tmpl`,
   only if the user wants project-wide standards now
 - `docs/specs/README.md` from `assets/templates/specs-README.md.tmpl`, only if
-  the user asked for specs
+  the user selected the plain-spec profile
 - `docs/specs/<approved-domain>.md` from `assets/templates/SPEC.md.tmpl`, one
-  per domain whose content the user approved now
+  per domain whose plain-spec content the user approved now
+- For OpenSpec + Backlog, follow
+  [the hybrid profile](references/spec-driven-workflow.md) to stage the workflow,
+  config, schemas and any approved initial change artifacts. Future greenfield
+  behavior is a change delta, not an already implemented baseline.
 
 Decide **every** conditional label independently using the table in
 `references/artifacts.md`. Keep applicable content and remove its marker lines;
@@ -174,9 +226,15 @@ stop without creating tasks.
 ## Phase 2 - Task decomposition
 
 Read [references/phase-2-decomposition.md](references/phase-2-decomposition.md).
-Confirm the epic list from the masterplan roadmap, then interview per epic, one
-topic per message. Emit a proposed task tree (titles, outcomes, acceptance
-criteria, dependencies) and wait for approval before creating anything.
+In the hybrid profile, start from the next approved change and its scenarios;
+otherwise confirm the epic list from the masterplan roadmap. Interview unresolved
+scope one topic per message. Emit a proposed task tree (titles, outcomes,
+acceptance criteria, dependencies, specification references) and wait for
+approval before creating anything.
+
+For brownfield adoption, substitute the discovered board directory in all paths
+below and use the source map when no kickoff masterplan exists. Compare identity
+only against identity records that actually exist.
 
 Before starting Phase 2, search
 `.backlog/brainstorming/*.Decomposition/TASK-TREE.md`. Exactly one means resume
@@ -196,34 +254,45 @@ Backlog task-creation guide. Derive valid types, priorities and statuses from
 `backlog task create --help` for the active board; never assume the default
 configuration. Include the approved initial status explicitly on every creation
 command; it must be a normal task status shown by `backlog task edit --help`,
-not the special `Draft` creation status. A design-affecting temporary choice must appear both
-as a masterplan open question and an explicit `Assumption:` line in each
-dependent task. A deferred question with no dependent choice needs only the
-masterplan entry.
+not the special `Draft` creation status. A design-affecting temporary choice must
+appear both as an open question in the masterplan (or brownfield question owner) and an
+explicit `Assumption:` line in each dependent task. A deferred question with no
+dependent choice needs only the question entry.
 
 ## Phase 3 - Verify and report
 
 ### Document checkpoint
 
 1. Build an explicit file list containing the three core documents plus only
-   the optional files actually selected. Do not pass a nonexistent `docs/`
-   directory to verification commands.
+   the optional files actually selected. Brownfield uses its selected-output
+   manifest instead of requiring the greenfield core. Do not pass a nonexistent
+   `docs/` directory to verification commands.
 2. For every file in that list, verify no `{{`, `<!-- BEGIN:`, `<!-- END:` or
    `guidance:` remains and every relative Markdown link resolves.
 3. Verify every selected file exists, every unselected optional file is absent,
    unless it was present in the initial inventory, and every spec-index domain
    link resolves. Never remove or reject an unselected pre-existing path.
-4. Confirm every populated kickoff-brief section has its durable owner, then
+4. For the hybrid profile, validate both project-local schemas and every selected
+   change/baseline with OpenSpec. Check source ownership and stable IDs; require
+   no internal task-tracking artifact. Runtime schema templates remain templates.
+5. Verify any delegation policy collected in this run has its guide owner,
+   optional role links resolve, and review evidence identifies actual provenance,
+   snapshot and gaps.
+   Installing role contracts is not evidence that independent review occurred.
+6. Confirm every populated kickoff-brief section has its durable owner, then
    remove only the current `.Kickoff/` directory and confirm it is gone.
 
 ### Task checkpoint, when Phase 2 ran
 
 1. Use `backlog task list --json` to inventory created IDs.
 2. Inspect every created task with `backlog task view <ID> --json` and compare
-   title, type, priority, status, parent, dependencies, references, description
-   and acceptance criteria with the approved tree.
+   title, type, priority, status, labels, parent, dependencies, references,
+   description and acceptance criteria with the approved tree.
 3. Confirm every task, including epic parents, has at least one acceptance
-   criterion and every design-affecting assumption has a masterplan question.
+   criterion and every design-affecting assumption has a question in its
+   designated owner.
+   In the hybrid profile, also verify the change label, requirement/scenario
+   coverage and references; Backlog owns all execution state and evidence.
 4. Remove the current `.Decomposition/` directory only after all approved tasks
    exist and match. Preserve unrelated brainstorming directories.
 
@@ -235,6 +304,10 @@ and assumptions. A documents-only run succeeds without any tasks.
 - [Phase 1 - scoping interview](references/phase-1-scoping.md)
 - [Phase 2 - task decomposition](references/phase-2-decomposition.md)
 - [Artifacts, placeholders and rendering](references/artifacts.md)
+- [OpenSpec + Backlog methodology and setup](references/spec-driven-workflow.md)
+- [Brownfield adoption](references/brownfield-adoption.md)
+- [Roles and optional delegation](references/delegation.md)
 - Templates: `assets/templates/`
+- OpenSpec schemas and runtime templates: `assets/openspec/`
 - Backlog bootstrap: [scripts/ensure-backlog.sh](scripts/ensure-backlog.sh)
 - Skill verification: [scripts/verify-skill.sh](scripts/verify-skill.sh)

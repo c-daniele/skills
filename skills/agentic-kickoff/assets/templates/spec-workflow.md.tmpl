@@ -1,0 +1,200 @@
+# {{PROJECT_NAME}} - Specification workflow
+
+## Sources of truth
+
+{{SPEC_SOURCE_MAP}}
+
+The Backlog board lives at `{{BACKLOG_DIR}}/`. Run every Backlog command from the
+project root with `BACKLOG_CWD` set to that absolute root; verify
+`backlog config get projectName` before mutations. Use the configured statuses,
+priorities and types reported by the CLI, not assumed defaults.
+
+Current approved behavior lives in the applicable capability baseline. An
+approved active change overlays that baseline for its own scope until delivery.
+A draft is a proposal. Code and tests are evidence of implementation; a conflict
+with the approved contract needs a product decision or a bug fix, not silent
+rewriting of either source.
+
+## Depth and review policy
+
+{{SPEC_POLICY}}
+
+<!-- BEGIN: delegation -->
+Use [the role contracts](agent-roles.md) under the agent guide's approved
+delegation policy. Specification/design review fits before scope agreement;
+delivery review fits before closure step 2 completes. These are existing review
+points, not extra approval stages. The policy determines whether a separate
+reviewer is invoked and whether independence is required. Record provenance and
+findings against the reviewed snapshot; OpenSpec readiness never satisfies that
+review requirement by itself.
+
+<!-- END: delegation -->
+
+| Route | Use when | Artifacts |
+| --- | --- | --- |
+| Direct Backlog | Work preserves a known contract, or is a discovery spike | Task according to the working agreement |
+| `backlog-lean` | Behavior changes within an understood design | Proposal + delta specs |
+| `backlog-design` | Architecture, trust/data boundaries, migration or significant operational choices change | Proposal + delta specs + design |
+
+Use one short proposal and the smallest useful capability scope. Do not add an
+epic, ADR or separate report just to fill a template. If design uncertainty
+emerges in a lean change, keep the change ID, explicitly select `backlog-design`
+in its `.openspec.yaml`, and review design before dependent implementation.
+
+## 1. Scope the change
+
+Read the relevant product context, baseline specs, existing tasks and actual
+code. State the actor, problem, expected outcome and exclusions. For brownfield
+work, distinguish observed behavior, approved baseline, intended delta and
+unknowns; attach evidence to observations. Baseline only the touched capability.
+For greenfield work, specify the first deliverable slice, not the whole roadmap.
+Use one-level capability folders for the tested layout. On adoption of nested
+capability paths, verify installed CLI archive support first; preserve the paths.
+
+Create or resume one change, using its stable kebab-case ID:
+
+```bash
+openspec new change <change-id> --schema backlog-lean
+openspec status --change <change-id> --json
+openspec instructions proposal --change <change-id> --json
+```
+
+Select `backlog-design` at creation when that route applies. Check for an
+existing change before creating it. The instructions command returns guidance
+and a template; the agent writes the approved content.
+
+## 2. Specify behavior, then design when needed
+
+Write `proposal.md`: why, outcome, scope, capabilities and unresolved questions.
+Then obtain and follow the artifact instructions:
+
+```bash
+openspec instructions specs --change <change-id> --json
+```
+
+- `openspec/specs/<capability>/spec.md` is the current baseline.
+- `openspec/changes/<change-id>/specs/<capability>/spec.md` is the proposed delta.
+- Use `### Requirement: <stable-id> <name>` and normative SHALL/MUST wording.
+- Use `#### Scenario: <name>` with concrete GIVEN/WHEN/THEN observations. Each
+  added or modified requirement needs at least one scenario.
+- Include relevant error/denial behavior and measurable quality constraints.
+  Keep capability-specific security and privacy behavior in that capability.
+  Link shared rules and authoritative API/data contracts instead of copying them.
+- ADDED introduces a requirement. MODIFIED replaces the **entire existing
+  requirement block**, retaining its exact heading and all surviving scenarios.
+  REMOVED records reason and migration; RENAMED uses OpenSpec's FROM/TO format.
+- Preserve existing headings without IDs; a heading change requires an explicit
+  rename. Do not put unresolved guesses into approved normative statements.
+
+For `backlog-design`, run
+`openspec instructions design --change <change-id> --json` and record the
+technical approach, alternatives and relevant operational consequences in
+`design.md`. Durable decisions link to the agreed ADR store. Execution steps
+belong on the active Backlog task.
+
+Run `openspec validate <change-id> --type change --strict`. Review the actual
+behavior and scenarios under the policy above; CLI validation only checks
+structure. Approved requirements need concrete conditions and outcomes, with no
+placeholder text or blocking business decisions. Record the agreed scope in the
+proposal's Agreement section.
+
+## 3. Hand off to Backlog
+
+After scope approval, propose focused tasks with independently testable
+acceptance criteria. Reuse existing matching tasks before creating new ones.
+Each task carries:
+
+- label `change-<change-id>` and the immutable change ID in its description;
+- covered requirement IDs (or exact legacy headings) and scenario names;
+- repository-relative references to the existing delta files and relevant
+  baseline/design files;
+- an outcome, bounded scope, dependencies and evidence expected for its criteria.
+
+Inspect the installed command help: creation uses `--labels`; editing an
+existing task can use `--add-label` to preserve other labels. For example,
+replacing each quoted placeholder with its approved value:
+
+```bash
+BACKLOG_CWD="$PWD" backlog task create "<title>" \
+  --type "<configured-type>" --priority "<configured-priority>" \
+  --status "<approved-initial-status>" --labels "change-<change-id>" \
+  -d "<outcome, Change ID, requirement IDs and scenario scope>" \
+  --ref "openspec/changes/<change-id>/specs/<capability>/spec.md" \
+  --ac "<requirement-linked, independently observable criterion>"
+```
+
+Put each criterion in its own `--ac` argument. Record plans only after inspecting
+the implementation. Create parent/dependency tasks first.
+Every changed requirement/scenario must map to a task or explicit existing
+verification evidence; revise missing scope before starting implementation.
+
+Backlog owns assignment, dependencies, plans, status and evidence. There is no
+OpenSpec `tasks.md`, delivery checklist or mirrored progress table. Clarifications
+that change behavior must update the spec and affected task criteria together.
+
+## 4. Implement and verify
+
+```bash
+openspec instructions apply --change <change-id> --json
+BACKLOG_CWD="$PWD" backlog task list --labels change-<change-id> --json
+```
+
+Read this workflow and the linked specs before activating an eligible task.
+Follow the Backlog execution/completion instructions and the agent guide. Verify
+the applicable scenarios and integration boundaries; record commands, results,
+test paths and relevant revision in the task's final summary. Check acceptance
+criteria only when their evidence exists. An AI-generated scenario is not a test
+result. Use manual evidence when appropriate and say what was actually checked.
+
+The schemas deliberately omit `apply.tracks`. OpenSpec does not read this board.
+Its `ready` state, empty task array or `0/0` progress does **not** prove delivery
+or authorize closure. Read actual task details with `backlog task view <id>
+--json`. If there are no linked tasks, the change is still in planning; create
+approved work or keep it open. A documents-only kickoff can stop at that point.
+
+## 5. Close the change and update the baseline
+
+Use the following closure procedure through the project agent agreement, even
+when a generic OpenSpec assistant command offers to archive automatically:
+
+1. Enumerate all `change-<change-id>` tasks, including parents, and inspect their
+   criteria and evidence. All required delivery work must have the configured
+   successful completion status and passing evidence for the agreed scenarios.
+   Cancelled or deferred work is not delivered; revise/split the approved delta
+   first. Keep these tasks editable until reference updates are finished.
+2. Check the actual diff against the approved delta/design. Reconcile any other
+   active change touching the same requirement against the latest baseline.
+   Validate the change with `--type change --strict` and complete the project's
+   review policy. Structural validity alone is insufficient.
+3. Archive once, letting the CLI merge the deltas into main specs:
+
+   ```bash
+   openspec archive <change-id> --yes
+   ```
+
+   This command does not enforce the external Backlog checks above. Do not use
+   `--skip-specs` for a behavior change or `--no-validate` to bypass a conflict.
+   Check the resulting files and reported archive destination, not only the exit
+   code. If an earlier sync already applied the deltas, reconcile that state
+   instead of applying them a second time.
+4. Inspect affected main specs, preserving unrelated requirements and scenarios.
+   For a new capability, replace any generated Purpose placeholder with the
+   already approved purpose; do not invent behavior during this cleanup. Run
+   `openspec validate <capability> --type spec --strict` for each affected spec.
+5. Replace active-change references on the linked tasks with the **actual**
+   archive paths through `backlog task edit --remove-ref ... --add-ref ...`, and
+   add relevant canonical spec references. Preserve other task references. Fix
+   relative links inside moved artifacts and inbound documentation links;
+   stable change/requirement IDs remain the historical join keys. Verify links.
+6. Update only cross-task product/roadmap facts and durable decisions in their
+   designated owners. The archived proposal/design explain history; current
+   behavior is read from the main specs.
+
+If closure is interrupted, inspect both the active path and actual archive path,
+main specs and task references before resuming. Complete missing post-archive
+checks/reference updates without rerunning a successfully applied delta. Keep
+an unresolved conflict visible; do not report the change closed until these
+checks pass.
+
+<!-- guidance: render the actual source map and approved review/depth policy.
+Use existing owners in brownfield projects instead of inventing core documents. -->

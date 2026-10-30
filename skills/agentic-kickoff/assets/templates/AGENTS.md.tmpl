@@ -20,6 +20,16 @@ implementation narrative.
 
 {{WORKING_AGREEMENT}}
 
+## Agent roles and delegation
+
+{{DELEGATION_POLICY}}
+
+<!-- BEGIN: delegation -->
+Use [the role contracts](docs/agent-roles.md) for bounded assignments, read-only
+review and result handling. Follow the existing review policy for approvals and
+closure. Record whether a review was independent or performed by the author.
+<!-- END: delegation -->
+
 ## Language and scope
 
 Kickoff-generated project records are written in English. Follow the project's
@@ -42,6 +52,10 @@ Do not make unrelated “on sight” changes.
 - [`docs/specs/`](docs/specs/README.md): normative behavior for the domains each
   approved spec explicitly covers.
 <!-- END: specs -->
+<!-- BEGIN: openspec -->
+- [`docs/spec-workflow.md`](docs/spec-workflow.md): behavioral source ownership,
+  OpenSpec change depth, Backlog handoff and closure procedure.
+<!-- END: openspec -->
 <!-- BEGIN: standards -->
 - [`docs/coding-standards.md`](docs/coding-standards.md): approved repository
   and stack-specific coding rules.
@@ -59,6 +73,14 @@ Do not make unrelated “on sight” changes.
 
 ## Development workflow
 
+<!-- BEGIN: openspec -->
+Before activating work, follow [the specification workflow](docs/spec-workflow.md)
+to select direct Backlog, `backlog-lean` or `backlog-design`. Behavior changes need
+approved change specs and linked Backlog tasks. OpenSpec artifact readiness or
+an empty task list is not completion evidence; use the workflow's Backlog
+completion check before archive. Backlog is the sole task/evidence owner.
+
+<!-- END: openspec -->
 1. **Orient:** read the masterplan and relevant Backlog task.
 2. **Activate:** set eligible work to the board's configured active status,
    inspect current code and tests, then record the researched implementation
@@ -108,6 +130,8 @@ Do not make unrelated “on sight” changes.
 
 ## Backlog CLI boundaries
 
+- Run commands from this project root with `BACKLOG_CWD` explicitly set to its
+  absolute path. Confirm `backlog config get projectName` before mutations.
 - Use the CLI for tasks, drafts, documents and milestones; never hand-edit their
   Markdown files.
 - A decision body is the sole direct-edit exception: run

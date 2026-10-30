@@ -44,8 +44,8 @@ topics; update them at each transition described in `SKILL.md`.
 | 9 | Success criteria | observable review and pivot signals | Masterplan |
 | 10 | Constraints, stack and commands | fixed constraints; known setup and verification commands | Masterplan, Agent Guide, optional standards |
 | 11 | Glossary | ambiguous domain terms and winning meanings | Masterplan |
-| 12 | Working agreement | task threshold, language, journal/ADR, Git and review policies, optional approved standards | Agent Guide, optional standards |
-| 13 | Specifications | no specs, an empty index, or named approved domain-spec drafts | optional `docs/specs/` |
+| 12 | Working agreement | task threshold, language, journal/ADR, Git, review and delegation policies, optional role contracts/standards | Agent Guide, optional role contracts/standards |
+| 13 | Specifications | profile, ownership, depth policy and any approved initial behavior | optional `docs/specs/`, or hybrid workflow and OpenSpec artifacts |
 
 ## Topics
 
@@ -191,6 +191,13 @@ Ask and record each policy separately:
 - If Git is used, what branch, merge and commit-message policy applies?
 - What review or approval is required before implementation, documentation and
   merge?
+- Should the primary agent work alone or use bounded delegates? Follow
+  [delegation.md](delegation.md) to agree on allowed roles, triggers, independent
+  versus advisory review, limits and runtime fallback. Propose an optional
+  read-only reviewer first; keep scoping/planning in the primary conversation.
+  Confirm whether to include `docs/agent-roles.md`. Record `DELEGATION_POLICY`
+  even when the answer is single-agent; do not infer authorization from a role
+  name or from selecting an OpenSpec schema.
 - Should project-wide coding standards be written now? If yes, collect the
   actual general and language-specific rules rather than accepting the generic
   template wording by default.
@@ -199,10 +206,25 @@ The rendered `AGENTS.md` must reflect these answers exactly. Omit `journal`,
 `decisions` or `git` blocks when the corresponding practice is declined or not
 applicable.
 
+The `delegation` conditional selects the portable role-contract document, not a
+runtime agent configuration. Its policy belongs in the agent guide. Its keep/drop
+decision is independent of the specification profile chosen in topic 13.
+
 ### 13. Specifications
 
-Ask whether normative behavior should be written now. Default to later. If yes,
-ask which option the user approves:
+Ask whether normative behavior should be written now. Default to later unless
+the user already requested specification-driven development. Select one profile:
+
+- **None:** omit all generated spec-profile blocks.
+- **Plain Markdown:** use the index/domain procedure below.
+- **OpenSpec + Backlog:** recommend this when the user wants structured SDD with
+  lean task management. Read [spec-driven-workflow.md](spec-driven-workflow.md),
+  then confirm source ownership, direct/lean/design thresholds and the initial
+  change scope one topic per turn. Record `SPEC_SOURCE_MAP` and `SPEC_POLICY` in
+  the brief. Keep detailed design choices out of requirements and task status
+  out of specs. Do not also create plain specs for the same behavior.
+
+For the plain Markdown profile, ask which option the user approves:
 
 1. create only `docs/specs/README.md`, explicitly stating that no domain specs
    are approved yet; or
@@ -214,6 +236,12 @@ Its existence does not make it authoritative for behavior it does not cover.
 For each named domain, preserve a complete draft in the kickoff brief: name,
 purpose, filename, status, scope, requirements, behavior, invariants and
 cross-references. Do not rely on conversation history to reconstruct it.
+
+For the hybrid profile, offer workflow setup only or complete initial change
+drafts. Preserve each change ID, schema selection, proposal, capability delta
+and applicable design in the brief. Canonical main specs represent approved
+current behavior; unimplemented greenfield behavior stays in a change. A
+documents-only checkpoint leaves that change open with no generated tasks.
 
 ## Exit criteria
 

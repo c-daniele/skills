@@ -141,9 +141,20 @@ done < <(find "${REFERENCES_DIR}" -type f -name '*.md' | sort)
 
 # --- 5. Templates -----------------------------------------------------------
 expected_templates="MANIFESTO.md.tmpl MASTERPLAN.md.tmpl AGENTS.md.tmpl coding-standards.md.tmpl KICKOFF-BRIEF.md.tmpl TASK-TREE.md.tmpl specs-README.md.tmpl SPEC.md.tmpl"
+expected_templates="${expected_templates} spec-workflow.md.tmpl openspec-config.yaml.tmpl AGENTS-spec-workflow.md.tmpl ADOPTION-BRIEF.md.tmpl OPENSPEC-BASELINE.md.tmpl BACKLOG-SPEC-TASK.md.tmpl"
+expected_templates="${expected_templates} agent-roles.md.tmpl AGENTS-delegation.md.tmpl DELEGATION-HANDOFF.md.tmpl REVIEW-RESULT.md.tmpl"
 for tmpl in ${expected_templates}; do
     [ -f "${TEMPLATES_DIR}/${tmpl}" ] || fail "missing template ${tmpl}"
 done
+
+for schema in backlog-lean backlog-design; do
+    schema_dir="${SKILL_DIR}/assets/openspec/${schema}"
+    [ -f "${schema_dir}/schema.yaml" ] || fail "missing OpenSpec schema ${schema}"
+    for template in proposal.md spec.md; do
+        [ -f "${schema_dir}/templates/${template}" ] || fail "missing ${schema} template ${template}"
+    done
+done
+[ -f "${SKILL_DIR}/assets/openspec/backlog-design/templates/design.md" ] || fail "missing design template"
 
 # Conditional markers must be balanced and paired per template.
 while IFS= read -r tmpl; do
@@ -226,6 +237,11 @@ fi
 # --- 9. Backlog CLI integration smoke test ---------------------------------
 if [ -f "${SCRIPT_DIR}/test-backlog-integration.sh" ]; then
     bash "${SCRIPT_DIR}/test-backlog-integration.sh" || fail "Backlog integration test failed"
+fi
+
+# --- 10. OpenSpec external-task workflow ------------------------------------
+if [ -f "${SCRIPT_DIR}/test-openspec-integration.sh" ]; then
+    bash "${SCRIPT_DIR}/test-openspec-integration.sh" || fail "OpenSpec integration test failed"
 fi
 
 # --- Result -----------------------------------------------------------------

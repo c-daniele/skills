@@ -1,0 +1,44 @@
+name: backlog-lean
+version: 1
+description: Small behavior contracts with execution owned by Backlog.md
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Change intent, outcome, boundaries and affected capabilities
+    template: proposal.md
+    instruction: |
+      Read docs/spec-workflow.md and its source map before drafting.
+      Explain the actor's problem, expected outcome, scope and exclusions.
+      List new and modified capabilities using exact existing paths when present.
+      Separate observed brownfield behavior from approved baseline and intent.
+      Record open decisions explicitly; do not invent business rules.
+      Keep mechanisms and execution plans out. Remove unfilled template comments.
+    requires: []
+  - id: specs
+    generates: specs/**/*.md
+    description: Observable behavior changes expressed as capability deltas
+    template: spec.md
+    instruction: |
+      Create specs/<capability>/spec.md for each affected capability.
+      Read the current baseline first. Use ADDED, MODIFIED, REMOVED or RENAMED
+      Requirements sections. MODIFIED contains the full replacement requirement,
+      with its exact original heading and all surviving scenarios.
+      Use stable requirement IDs for new requirements, SHALL/MUST statements,
+      and at least one concrete #### Scenario with WHEN/THEN per requirement.
+      Include applicable denial/failure behavior and quality constraints.
+      Link shared rules; put implementation choices in design, not in specs.
+      Remove unused sections and unfilled template comments. If design is needed,
+      follow the workflow's escalation to backlog-design before implementation.
+    requires: [proposal]
+apply:
+  requires: [proposal, specs]
+  instruction: |
+    Read docs/spec-workflow.md and the applicable agent guide first.
+    This schema has no internal task tracking: ready means artifacts exist,
+    not that scope is approved or delivery is complete. An empty tasks array
+    or 0/0 progress is not completion evidence.
+    Use Backlog.md tasks labeled change-<this-change-id>; inspect their specs,
+    criteria, dependencies and evidence. If none exist, propose work through
+    the agreed Backlog handoff rather than treating the change as done.
+    Execute and record results through Backlog's CLI. Do not create tasks.md.
+    Use the project's external-task completion check before any archive command.

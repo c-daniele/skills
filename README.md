@@ -8,7 +8,21 @@ Structure is loosely inspired by [mattpocock/skills](https://github.com/mattpoco
 
 | Skill | What it does |
 | --- | --- |
-| [agentic-kickoff](skills/agentic-kickoff/SKILL.md) | Bootstrap or resume a greenfield project kickoff: constitution, masterplan, agent guide, coding standards/specs, and a Backlog.md board. |
+| [agentic-kickoff](skills/agentic-kickoff/SKILL.md) | Kick off greenfield projects or adopt SDD in brownfield repositories: project context, agent agreement, optional OpenSpec specifications, explicit roles with optional independent review, and Backlog.md as the sole task board. |
+
+### Agentic kickoff profiles
+
+- Project context and Backlog.md, with optional plain Markdown specifications.
+- [OpenSpec + Backlog](skills/agentic-kickoff/references/spec-driven-workflow.md):
+  direct tasks for contract-preserving work, lean behavior specs, and a design
+  artifact only when technical decisions need it.
+- [Brownfield adoption](skills/agentic-kickoff/references/brownfield-adoption.md):
+  reuse existing documents and tasks, baseline the first touched capability and
+  introduce the workflow incrementally. Documents-only completion is supported.
+- [Roles and optional delegation](skills/agentic-kickoff/references/delegation.md):
+  keep scoping/planning with the primary agent, enable a read-only reviewer on
+  approved triggers, and use bounded artifact-based handoffs. Available with any
+  specification profile; the project guide owns the actual delegation policy.
 
 ## Installation
 

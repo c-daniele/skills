@@ -1,0 +1,128 @@
+# {{PROJECT_NAME}} - Agent roles
+
+## Authority and activation
+
+Read {{AGENT_GUIDE_LINK}} for the approved delegation and review policies. A role
+in this document does not itself authorize a separate agent. The primary agent
+normally scopes, plans, implements and verifies; invoke a delegate only on an
+explicit user request or a trigger authorized by that policy and allowed by the
+runtime. Use the existing runtime's capabilities and permission controls.
+
+The primary keeps the user conversation, scope decisions and integration. All
+roles follow the same product/specification owners and Backlog boundaries.
+During kickoff or documents-only work, roles remain advisory; implementation
+starts only when separately requested under the development workflow.
+
+## Role contracts
+
+| Role | Input | Output | Write authority |
+| --- | --- | --- | --- |
+| Scoper | Problem, actors, constraints and supplied context | Bounded alternatives, trade-offs, non-goals and unanswered product questions | Primary conversation by default; a delegate returns advice only |
+| Planner | Approved outcome/specs, relevant design, existing tasks and configured board values | Proposed task slices, criterion/scenario coverage and dependencies | Primary by default; a delegate proposes without creating or editing tasks |
+| Implementer | One eligible task, its contract, relevant code and checks | Focused implementation, tests and actual verification evidence | Only assigned files and explicitly delegated updates to its own Backlog task |
+| Reviewer | Review objective, contract, exact input snapshot and available evidence | Findings with impact, requirement/criterion, source evidence and coverage gaps | Read-only; returns a report to the primary |
+| Explorer | One bounded question about existing code, contracts or tests | Observations with paths/revision, confidence and unresolved questions | Read-only; returns evidence to the primary |
+
+Scoping/planning stay in the primary context unless the approved policy explicitly
+delegates a bounded question. An explorer describes what is observed, not what
+the product ought to do. An implementer proposes any needed contract change to
+the primary rather than silently editing normative specs or expanding its task.
+
+## Before a delegate starts
+
+Send a compact assignment with:
+
+1. Role, bounded objective and the approved trigger for this call.
+2. Absolute project root and the relevant agent-guide/policy excerpt.
+3. Existing source paths: applicable product constraints, specs/design, Backlog
+   task IDs and pertinent code/tests. Identify the exact input snapshot: commit,
+   staged/unstaged diff and relevant untracked-file hashes, or scoped file
+   checksums. A commit alone does not identify uncommitted work.
+4. Allowed operations, writable paths (none for reviewer/explorer), and any
+   explicitly allowed verification commands. Supply scoped content if those
+   paths cannot be read in the delegate's context.
+5. Expected output, stopping conditions and the approved concurrency/round limit.
+
+A separate delegate gets the relevant role contract and artifacts, not an
+unbounded transcript. Use only agent/tool capabilities actually available; these
+role names are not tool IDs or model names. Delegates do not delegate further
+unless explicitly authorized.
+
+## Review contract
+
+Choose one bounded review objective per assignment:
+
+- **Specification/design:** check observable requirements, applicable negative
+  scenarios, testability, consistency with approved intent and the boundary
+  between behavior and mechanisms. Link findings to requirement IDs or exact
+  legacy headings. Evaluate selected design trade-offs against actual constraints.
+- **Delivery:** compare the actual diff and evidence with the agreed contract.
+  Look for missing behavior, regressions and implementation outside the task.
+  Identify which scenarios lack evidence; do not treat structural validation or
+  checked task boxes as proof.
+
+Reviewers do not edit source/specs, mutate Backlog, commit, approve scope or close
+a change. Run only checks authorized in the assignment; isolate generated test
+artifacts from the shared tree when necessary. Role instructions define allowed
+operations; they are not a technical sandbox. If the policy requires enforced
+read-only permissions that the runtime cannot provide, return that limitation
+to the primary and apply the approved fallback.
+
+Return:
+
+- **Provenance and scope:** independent context or self-review, actual reviewer
+  identity when available, inspected snapshot and requirements/task criteria.
+- **Findings:** for each, impact, contract reference, exact file/section or
+  reproduction evidence, and a suggested correction or open question. Separate
+  confirmed mismatches from hypotheses needing verification.
+- **Evidence:** checks actually run with results; separately identify supplied
+  evidence that was only inspected.
+- **Gaps:** uninspected areas, unavailable inputs and checks not run.
+
+If nothing actionable is found, report “No findings in the inspected scope”
+alongside coverage and gaps. Do not manufacture style findings or claim an
+unperformed test passed. Changing role within the author's session is self-review,
+not independent review.
+
+## Consume the result
+
+The primary verifies findings and records each as addressed, deferred or
+disputed with a reason. Apply existing approval rules; only unresolved findings
+covered by those rules block the relevant work. A reviewer does not replace
+human decisions or actual execution evidence.
+
+Persist substantive findings/dispositions on the existing Backlog task through
+the CLI, or in the existing proposal/decision/review record for planning work.
+Include review provenance and gaps in a documents-only handover. No separate
+task board or mandatory per-change review file is needed.
+
+Tie a review to its input snapshot. If the reviewed contract or implementation
+changes, recheck affected findings/coverage before relying on the earlier result.
+Further rounds need a changed input or a specific unresolved finding. If a
+delegate is unavailable or returns incomplete evidence, use the approved fallback
+and label the outcome accurately. An explicitly required independent check stays
+pending until fulfilled or the user changes the policy.
+
+## Write ownership
+
+Keep one writer per shared artifact. The primary owns shared specifications,
+roadmap and change closure; reviewer/explorer write none. A delegated implementer,
+only when explicitly enabled, owns its assigned task and write set. Keep unrelated
+discoveries as proposed follow-up work. Parallel writers require explicit
+authorization, separate write sets or isolated workspaces, and a named integration
+owner before execution.
+
+<!-- BEGIN: openspec -->
+## OpenSpec review points
+
+Follow [the specification workflow](spec-workflow.md). Direct Backlog and
+`backlog-lean` normally use the primary agent, with review on request or an
+approved specific trigger. For `backlog-design`, the recommended review points
+are the completed proposal/spec/design before dependent implementation, and the
+implementation/evidence before change closure. The guide's approved policy
+determines which calls are enabled and whether independent review is required.
+Schema selection alone is not delegation authorization.
+<!-- END: openspec -->
+
+<!-- guidance: link the actual policy-owning agent guide. Keep this document
+independent of the spec profile; retain OpenSpec content only for that profile. -->
