@@ -9,6 +9,7 @@ Structure is loosely inspired by [mattpocock/skills](https://github.com/mattpoco
 | Skill | What it does |
 | --- | --- |
 | [agentic-kickoff](skills/agentic-kickoff/SKILL.md) | Kick off greenfield projects or adopt SDD in brownfield repositories: project context, agent agreement, optional OpenSpec specifications, explicit roles with optional independent review, and Backlog.md as the sole task board. |
+| [live-testing](skills/live-testing/SKILL.md) | Collaborate on live tests with Playwright, answer UI questions, and collect feedback in a persistent scratchbook. Create new tasks only after explicit final approval; do not implement changes. |
 
 ### Agentic kickoff profiles
 

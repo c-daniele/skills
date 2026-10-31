@@ -10,9 +10,9 @@
     {
       "name": "cdaniele-skills",
       "source": "./",
-      "description": "Project kickoff and specification workflows for coding agents.",
+      "description": "Project kickoff, specification workflows, and collaborative live testing for coding agents.",
       "category": "productivity",
-      "tags": ["skills", "kickoff", "spec-driven-development"]
+      "tags": ["skills", "kickoff", "spec-driven-development", "live-testing"]
     }
   ]
 }
