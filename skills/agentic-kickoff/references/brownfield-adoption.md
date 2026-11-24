@@ -18,7 +18,8 @@ constitution, roadmap, agent guides, decisions and task board retain their roles
 3. If no board exists, confirm identity and follow Phase 0's CLI/git/init steps
    to create one. Existing product documents are not a reason to replace them.
    If a discovered board belongs to another project, stop and report its path.
-4. Inventory the applicable `AGENTS.md` files, product context, roadmap, existing
+4. Inventory the applicable `AGENTS.md` files, product context, roadmap, daily
+   work view and its generator (if any), existing
    specifications and contracts, ADR store, OpenSpec config/schemas/changes and
    relevant existing Backlog tasks, including any role/delegation policy and
    `docs/agent-roles.md`. Confirm the first capability/change boundary.
@@ -94,6 +95,12 @@ addition to an existing workflow. It does not need new specification artifacts.
 The greenfield core documents are optional here. Create a missing one only when
 the user wants that artifact. Map an existing product brief or roadmap instead
 of generating a duplicate. Reuse the existing ADR store; do not add a second one.
+When adding a workplan to an existing or legacy kickoff, reuse the discovered
+direction/view paths and actual status semantics. Follow [workplan setup](workplan.md)
+using the existing board; propose the generator, exact reading view and targeted
+guide/link patches together. Preserve a divergent view or helper as an update
+with an approved preimage, never as a generated overwrite. Unrequested plans
+are not a prerequisite for spec adoption or a reason to reinitialize the board.
 Replace obsolete task-mirroring instructions in an agent guide only through the
 same approved patch. Explain unresolved ownership conflicts before execution.
 
@@ -124,7 +131,8 @@ the greenfield route remains create-only.
 
 Check selected files, rendered tokens, relative links, source ownership, schema
 validation and any selected spec/change validation. Compare installed files to
-approved postimages. Confirm existing tasks and unrelated configuration were
+approved postimages. Check any selected view against its board and resolve links
+from each document's actual directory. Confirm existing tasks and unrelated configuration were
 preserved. For initial task decomposition, reuse Phase 2 under the actual board
 path and bind tasks to the selected change rather than re-planning the roadmap.
 Validate role/delegation choices and actual review provenance when applicable;

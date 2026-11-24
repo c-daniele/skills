@@ -17,6 +17,9 @@ structure.
 | Which decision outlives the change? | Existing ADR store, when enabled | Repeated design narrative |
 | Who does what next, and what proves it works? | Backlog tasks and their evidence | A mirrored OpenSpec `tasks.md` |
 
+On a new kickoff the source map also points readers to `WORKPLAN.md`, the daily
+view generated from Backlog; on adoption link the existing view only if present.
+
 Keep business outcomes in the product context, project constraints in their
 existing owner, and implementation mechanisms in design. The masterplan may
 summarize the current stack and link its decisions; their rationale stays in

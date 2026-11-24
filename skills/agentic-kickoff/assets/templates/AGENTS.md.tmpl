@@ -4,17 +4,25 @@
 
 ## Start here
 
-1. Read [the masterplan](.backlog/masterplan/MASTERPLAN.md) for current state,
-   goals, constraints, roadmap, vocabulary and open questions.
-2. Run `backlog instructions overview`, then search and inspect relevant tasks.
+1. For direction, read [the masterplan](.backlog/masterplan/MASTERPLAN.md).
+   For daily progress, open [the workplan](WORKPLAN.md).
+2. To change status or record evidence, update Backlog first, then regenerate
+   the workplan. Run `backlog instructions overview` and inspect the relevant task.
 3. Before creating, executing or finalizing a task, read the matching Backlog
    guide named by the overview.
 4. Keep changes within the approved task. Record unrelated discoveries as
    proposed follow-up work instead of expanding scope silently.
 
-The active Backlog task is the execution-plan record. The masterplan contains
-only cross-task state and direction; it does not duplicate task status or
-implementation narrative.
+The agent responsible for the records refreshes the shared view after each batch
+of changes and checks it before handoff. From the project root:
+
+```sh
+ruby scripts/workplan.rb --write
+ruby scripts/workplan.rb --check
+```
+
+Readers just open the Markdown file. Never hand-edit its rows. If the helper
+reports a conflicting edit, preserve it and reconcile with the author first.
 
 ## Working agreement
 
@@ -37,6 +45,12 @@ approved localization requirements for product copy and user-facing content.
 Do not translate or otherwise rewrite unrelated files merely because a task
 touches their area.
 
+Write both plans for a competent colleague joining today. Introduce the product
+and its users. Lead with the action, result or decision; use a technical term
+only when needed and explain it on first use. Preserve limits, responsibilities
+and approval conditions: “The service owner must approve the spending limit
+before the first paid test” tells the reader who must do what and when.
+
 When documentation or code disagrees, resolve it within the current task when
 that correction is in scope. Otherwise record the conflict as follow-up work.
 Do not make unrelated “on sight” changes.
@@ -44,9 +58,11 @@ Do not make unrelated “on sight” changes.
 ## Document map
 
 - [`.backlog/masterplan/MASTERPLAN.md`](.backlog/masterplan/MASTERPLAN.md):
-  current state, outcomes, constraints, roadmap, glossary and open questions.
-- `backlog task list --plain` / `.backlog/tasks/`: executable work; mutate it
-  only through the Backlog CLI.
+  what we are building, for whom, why, and how we will judge success.
+- [`WORKPLAN.md`](WORKPLAN.md): daily progress, verified results, next actions,
+  estimates and blockers, generated from the board.
+- Backlog tasks and drafts: the only records for actions, status, dependencies
+  and evidence. Change them through the Backlog CLI.
 - [`MANIFESTO.md`](MANIFESTO.md): project constitution and boundaries.
 <!-- BEGIN: specs -->
 - [`docs/specs/`](docs/specs/README.md): normative behavior for the domains each
@@ -81,7 +97,8 @@ an empty task list is not completion evidence; use the workflow's Backlog
 completion check before archive. Backlog is the sole task/evidence owner.
 
 <!-- END: openspec -->
-1. **Orient:** read the masterplan and relevant Backlog task.
+1. **Orient:** open the workplan, then the linked record. Only an approved task
+   can start; the absence of dependencies does not authorize a proposal.
 2. **Activate:** set eligible work to the board's configured active status,
    inspect current code and tests, then record the researched implementation
    plan on the task. Read valid statuses from `backlog task edit --help`; do not
@@ -100,9 +117,10 @@ completion check before archive. Backlog is the sole task/evidence owner.
     {{TEST_COMMANDS}}
     ```
 <!-- END: tests -->
-6. **Finalize:** check only acceptance criteria supported by evidence, record the
-   evidence in the final summary, update cross-task masterplan facts, and move
-   the task to the configured terminal status.
+6. **Finalize:** check only criteria supported by evidence, record the actual
+   result in the Backlog final summary and set the appropriate status. Regenerate
+   and check the workplan. Completing a task changes the masterplan only if its
+   result changes a goal, constraint, scope boundary or planning assumption.
 <!-- BEGIN: journal -->
 7. **Journal:** {{JOURNAL_POLICY}}
 <!-- END: journal -->
@@ -140,8 +158,20 @@ completion check before archive. Backlog is the sole task/evidence owner.
 - `backlog task edit` cannot target a task under `.backlog/completed/`. Do not
   move completed task files by hand during normal work; report a correction that
   requires archival maintenance.
-- Changing a task title does not rename its file. Treat the filename as stable
-  Backlog metadata rather than renaming it by hand.
+- Let Backlog manage filenames. Link to the existing record path after a rename.
+
+## Writing records for the workplan
+
+Use an action or outcome as the title. Use the board's agreed statuses and
+dependency IDs. Keep unapproved ideas in drafts, a proposal status or under the
+`proposal` label until explicitly approved; do not promote them just for this view.
+In the description use `Effort:` for an estimate in active person-hours (ranges
+welcome, never calendar duration) and `Waiting for:` for a pending decision,
+input or approval and who can supply it, if known. Remove resolved waits through
+the CLI. With no estimate the view says “Not estimated yet”. In implementation
+notes or the final summary put `Verified:` on a line with the actual check and
+observed result, including limits or failures. Keep supporting detail on the
+record. A planned test, a checked box or a completion status alone is not evidence.
 
 <!-- guidance: this is the approved working agreement. Do not insert generic
 workflow preferences that were not approved during kickoff. -->

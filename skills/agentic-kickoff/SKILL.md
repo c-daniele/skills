@@ -1,11 +1,11 @@
 ---
 name: agentic-kickoff
-description: "Bootstrap or resume a greenfield project kickoff, or adopt a specification workflow in an existing brownfield repository. Use when the user asks to scope a new project, write its initial masterplan, make a repository ready for coding agents, continue an interrupted kickoff, or introduce OpenSpec specifications with Backlog.md task management. Produces project context and an agent agreement, with optional plain specs or a lean OpenSpec + Backlog workflow, explicit roles and optional independent review. Supports documents-only completion, incremental brownfield baselines and optional task decomposition. Not for ordinary implementation tasks in an already configured project."
+description: "Bootstrap or resume a greenfield project kickoff, or adopt a specification workflow in an existing repository. Use when the user asks to scope a project, write its initial masterplan, prepare it for coding agents, resume a kickoff or introduce OpenSpec with Backlog.md. A new kickoff produces a masterplan for direction, a generated workplan for daily progress and an agent agreement. Supports documents-only completion, optional task decomposition, plain specs or OpenSpec + Backlog, incremental brownfield baselines and optional independent review. Not for ordinary implementation tasks."
 license: Apache-2.0
-compatibility: "Runtime requires Bash and Backlog.md >=1.50.1 and <2.0.0. The optional hybrid profile uses OpenSpec project-local schemas (smoke-tested with 1.4.0); inspect and validate the installed CLI. Git is optional. Installing CLIs requires a supported Node.js LTS release and npm. Writes only inside the target project directory."
+compatibility: "Runtime requires Bash and Backlog.md >=1.50.1 and <2.0.0. Generating/checking the workplan requires Ruby >=2.6 (standard library); reading it requires only Markdown. Optional hybrid profile: OpenSpec project-local schemas (tested with 1.4.0). Git is optional. Installing CLIs requires a supported Node.js LTS release and npm. Writes only inside the target project directory."
 metadata:
   author: sch
-  version: "1.3.0"
+  version: "1.4.0"
 ---
 
 # Agentic Kickoff
@@ -34,7 +34,9 @@ skill installs the working agreement; ordinary execution follows that agreement.
 | Artifact | Purpose |
 | --- | --- |
 | `MANIFESTO.md` | Project constitution; wins on conflict with any other document. |
-| `.backlog/masterplan/MASTERPLAN.md` | Always-current state, roadmap, decisions, open questions. |
+| `.backlog/masterplan/MASTERPLAN.md` | Direction: product, audience, goals, success criteria, scope, constraints, milestones, planning assumptions and open decisions. |
+| `WORKPLAN.md` | Daily progress, verified results and next actions. A generated one-page reading view of Backlog in every new project, even with zero tasks. |
+| `scripts/workplan.rb` | Project-local generator and freshness check for the agent maintaining the records. |
 | `AGENTS.md` | Agent entry point and working agreement. |
 | `docs/agent-roles.md` | Optional role contracts, bounded delegation and review-result handling. |
 | `docs/coding-standards.md` | Per-language rules, when the user wants them now. |
@@ -77,6 +79,13 @@ owners instead of assuming the greenfield `.backlog/` layout.
 11. **Delegation is explicit and bounded.** Role names do not authorize agent
     calls. Follow the approved delegation policy and runtime restrictions; keep
     one writer per shared artifact and distinguish independent from self-review.
+12. **Write both plans for a competent colleague joining today.** Introduce the
+    product and its users. Lead with the action, result or decision; explain a
+    necessary technical term at first use. Preserve limits, decision owners and
+    approval conditions. Prefer “The service owner must approve the spending
+    limit before the first paid test” to “Clear the budget gate”. Task closure
+    changes the masterplan only if a goal, constraint, scope boundary or planning
+    assumption changes. Task queues, evidence and change history belong in Backlog.
 
 ## Roles and optional delegation
 
@@ -102,47 +111,50 @@ target project once a board exists.
 1. Before writing anything, collect and confirm Phase 1 topic 1: project name,
    repository slug and one-line description. Use the approved project name for
    `backlog init`; never guess it.
-2. Before classifying the repository, run `backlog config list`. If it succeeds,
+2. From the skill root run `bash scripts/ensure-backlog.sh`. Exit 3 means ask
+   permission to install, then run `AGENTIC_KICKOFF_INSTALL=1 bash scripts/ensure-backlog.sh`;
+   report exits 4–7 without retrying. For a new workplan confirm Ruby 2.6+ is available.
+   Before classifying the repository, run `backlog config list`. If it succeeds,
    an existing Backlog project is already discoverable here (including a root
    config or custom board directory), so this is not a fresh default-layout
    kickoff. Continue only when it is this skill's resumable or completed state,
    or route an explicit adoption request to the brownfield reference. Otherwise
    stop rather than reinitialize or relocate it.
 3. Inventory the exact core and optional output paths: `.backlog/config.yml`,
-   `MANIFESTO.md`, `AGENTS.md`, `.backlog/masterplan/MASTERPLAN.md`,
+   `MANIFESTO.md`, `AGENTS.md`, `.backlog/masterplan/MASTERPLAN.md`, `WORKPLAN.md`, `scripts/workplan.rb`,
    `docs/coding-standards.md`, `docs/agent-roles.md`, `docs/specs/`,
    `docs/spec-workflow.md` and `openspec/` (config, schemas, specs and changes).
    Preserve this initial inventory
    in the kickoff brief; an unselected pre-existing optional path is left alone.
-   A root-level `MASTERPLAN.md` alone is not one of this skill's targets.
+   For an existing project, discover and reuse the actual config, board,
+   roadmap, daily view and guide paths. An existing roadmap in another location
+   is context to inspect, not permission to create a competing plan.
 4. Classify the repository without guessing. At every branch, compare identity
    only with stores that exist: approved project name versus Backlog
    `projectName`; name and slug versus the kickoff brief when present; name and
    slug versus the masterplan when present. Stop on any available mismatch:
-   - No `.backlog/`, core document or existing OpenSpec setup is a fresh kickoff;
+   - No board directory/config, core document, generator or existing OpenSpec setup means a fresh kickoff;
      continue below. Existing project context can instead require adoption.
    - A board config with no core documents and no kickoff brief is an interrupted
      post-initialization state. Resume only if its project name matches the
-     approved identity and its task board is empty; create the brief immediately.
-   - Exactly one `.backlog/brainstorming/*.Kickoff/KICKOFF-BRIEF.md` means a
+     approved identity and its board has no tasks, drafts or stored work; create the brief immediately.
+   - Exactly one `<board>/brainstorming/*.Kickoff/KICKOFF-BRIEF.md` means a
      resumable kickoff. Its status and selected-output manifest decide whether to
      resume the interview, staged installation or verification. Existing partial
      outputs must byte-match their files under that kickoff's `approved/` tree;
-     otherwise stop and report the conflict.
-   - All three core documents plus the board config, with no kickoff brief, mean
-     document kickoff is complete. Do not overwrite them. Continue into Phase 2
-     only when explicitly requested.
+     otherwise stop and report the conflict. An older approved manifest is binding:
+     finish that version without injecting the workplan or generator. For an
+     interviewing brief, inventory the new destinations before proposing them.
+   - A matching board, Manifesto, masterplan and agent guide with no kickoff brief
+     indicate a completed kickoff, **including legacy projects without a workplan**.
+     Never reinitialize. A missing view/helper can be added only as a separately
+     approved additive update. Stop here unless explicitly asked to continue.
    - Multiple kickoff briefs, a nonempty untracked board, or any state not covered
      above is ambiguous. Stop and list the conflicting paths.
 5. For a fresh kickoff, run `git rev-parse --is-inside-work-tree`. If false, ask
    once whether to run `git init` or scaffold without git. Without git, add
    `--no-git` to `backlog init`.
-6. Backlog CLI: from the skill root (the directory holding this `SKILL.md`), run
-   `bash scripts/ensure-backlog.sh`. Handle its result once: exit 3 means ask
-   permission to install, then run
-   `AGENTIC_KICKOFF_INSTALL=1 bash scripts/ensure-backlog.sh`; exits 4-7 are
-   blockers whose emitted message must be reported without retrying.
-7. For a fresh kickoff, initialise the board:
+6. For a fresh kickoff, initialise the board:
 
    ```bash
    BACKLOG_CWD="$PWD" backlog init "<approved project name>" --defaults \
@@ -153,11 +165,11 @@ target project once a board exists.
    `--integration-mode none` is required: this skill writes the complete
    `AGENTS.md`, so Backlog.md must not inject generic instructions. Do not
    combine it with `--agent-instructions`; current Backlog.md rejects that pair.
-8. Create the directories Backlog.md does not:
+7. For a fresh kickoff, create the directories Backlog.md does not:
    `mkdir -p .backlog/masterplan .backlog/brainstorming`. Create
    `.backlog/docs/journal` later only when the approved working agreement uses a
    journal.
-9. Immediately create exactly one dated kickoff brief from
+8. After initializing (or resuming the empty post-init state), create one dated kickoff brief from
    `assets/templates/KICKOFF-BRIEF.md.tmpl`. Set its status to `interviewing`,
    record identity and the initial path inventory, and mark every unanswered
    section `Incomplete`. This closes the post-initialization interruption window.
@@ -179,6 +191,9 @@ brief, following [references/artifacts.md](references/artifacts.md):
 
 - `MANIFESTO.md` from `assets/templates/MANIFESTO.md.tmpl`
 - `.backlog/masterplan/MASTERPLAN.md` from `assets/templates/MASTERPLAN.md.tmpl`
+- `scripts/workplan.rb` and its exact `--stdout` output as `WORKPLAN.md` in
+  **every** profile; follow [workplan setup](references/workplan.md). Include
+  the real board snapshot in the proposal even when it contains no records.
 - `AGENTS.md` from `assets/templates/AGENTS.md.tmpl`
 - `docs/agent-roles.md` from `assets/templates/agent-roles.md.tmpl`, only when
   selected; fill the actual policy-owning guide link and delegation policy
@@ -208,10 +223,10 @@ approval:
    `artifacts-approved`, the selected destination list and a checksum for every
    staged file. Never re-render an approved staged tree during recovery; a
    missing file or checksum mismatch requires renewed approval.
-2. Set status `writing` immediately before installing staged files. Install each
-   destination atomically: create its parent, write or copy to a temporary file
-   in that same directory, verify its checksum, then rename it to the absent
-   destination. Never stream directly into a final path.
+2. Set status `writing` immediately before installing staged files. From the
+   project root use the skill's [create-only installer](scripts/install-approved.sh)
+   for each manifest entry, passing the staged path, destination and approved
+   SHA-256. It publishes verified bytes atomically without replacing a file.
 3. Install only selected destinations that are absent, or that already
    byte-match their staged counterpart after an interrupted install. Never
    overwrite different content. Set status `verifying` after installation.
@@ -228,8 +243,8 @@ stop without creating tasks.
 Read [references/phase-2-decomposition.md](references/phase-2-decomposition.md).
 In the hybrid profile, start from the next approved change and its scenarios;
 otherwise confirm the epic list from the masterplan roadmap. Interview unresolved
-scope one topic per message. Emit a proposed task tree (titles, outcomes,
-acceptance criteria, dependencies, specification references) and wait for
+scope one topic per message. Emit a proposed task tree (plain-language actions,
+outcomes, criteria, dependencies, blockers, active effort when known and spec references) and wait for
 approval before creating anything.
 
 For brownfield adoption, substitute the discovered board directory in all paths
@@ -254,18 +269,19 @@ Backlog task-creation guide. Derive valid types, priorities and statuses from
 `backlog task create --help` for the active board; never assume the default
 configuration. Include the approved initial status explicitly on every creation
 command; it must be a normal task status shown by `backlog task edit --help`,
-not the special `Draft` creation status. A design-affecting temporary choice must
-appear both as an open question in the masterplan (or brownfield question owner) and an
-explicit `Assumption:` line in each dependent task. A deferred question with no
-dependent choice needs only the question entry.
+not the special `Draft` creation status. Record a temporary choice as an explicit
+`Assumption:` in dependent tasks. Put the open decision in the masterplan when
+it affects direction or a planning premise; otherwise use its design, task or
+brownfield owner. A deferred question without a temporary choice needs no guess.
 
 ## Phase 3 - Verify and report
 
 ### Document checkpoint
 
-1. Build an explicit file list containing the three core documents plus only
-   the optional files actually selected. Brownfield uses its selected-output
-   manifest instead of requiring the greenfield core. Do not pass a nonexistent
+1. For a new kickoff require Manifesto, masterplan, workplan, agent guide and
+   workplan generator, plus only the optional files actually selected. For a
+   resumed approved manifest or brownfield adoption use its exact selections.
+   Check every installed file against its staged checksum. Do not pass a nonexistent
    `docs/` directory to verification commands.
 2. For every file in that list, verify no `{{`, `<!-- BEGIN:`, `<!-- END:` or
    `guidance:` remains and every relative Markdown link resolves.
@@ -279,7 +295,13 @@ dependent choice needs only the question entry.
    optional role links resolve, and review evidence identifies actual provenance,
    snapshot and gaps.
    Installing role contracts is not evidence that independent review occurred.
-6. Confirm every populated kickoff-brief section has its durable owner, then
+6. When the view is selected, run its `--check` from the project root. In new
+   projects confirm both plans introduce the product and users, link to each
+   other, and the guide directs readers to each. Check the view against
+   actual records for authorization, waits, estimates and evidence; zero tasks
+   must not create executable work. If records changed after approval, keep the
+   brief and seek approval for the changed snapshot; do not regenerate staged bytes.
+7. Confirm every populated kickoff-brief section has its durable owner, then
    remove only the current `.Kickoff/` directory and confirm it is gone.
 
 ### Task checkpoint, when Phase 2 ran
@@ -293,7 +315,9 @@ dependent choice needs only the question entry.
    designated owner.
    In the hybrid profile, also verify the change label, requirement/scenario
    coverage and references; Backlog owns all execution state and evidence.
-4. Remove the current `.Decomposition/` directory only after all approved tasks
+4. Where the view is installed, regenerate it from Backlog and run its freshness
+   check. Ordinary status and evidence updates do not require a masterplan edit.
+5. Remove the current `.Decomposition/` directory only after all approved tasks
    exist and match. Preserve unrelated brainstorming directories.
 
 Report created files, task IDs when any, verification evidence, open questions

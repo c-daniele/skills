@@ -19,14 +19,29 @@ if [ -z "$placeholders" ]; then
 fi
 
 replace_placeholders() {
-    local content="$1" placeholder name
-    while IFS= read -r placeholder; do
-        [ -n "$placeholder" ] || continue
-        name="${placeholder#\{\{}"
-        name="${name%\}\}}"
-        content="$(printf '%s' "$content" | sed "s/${placeholder}/value-${name}/g")"
-    done <<< "$placeholders"
-    printf '%s' "$content"
+    printf '%s' "$1" | sed -E \
+        -e 's/\{\{PROJECT_NAME\}\}/Loan Desk/g' \
+        -e 's/\{\{PROJECT_SLUG\}\}/loan-desk/g' \
+        -e 's/\{\{ONE_LINER\}\}/Loan Desk helps librarians lend equipment and record its return./g' \
+        -e 's/\{\{PROBLEM\}\}/Reconciling paper slips delays answers at the lending desk./g' \
+        -e 's/\{\{USERS_AND_JOBS\}\}/Desk librarians issue equipment and record returns./g' \
+        -e 's/\{\{PRIORITY_RULE\}\}/the desk librarian’s ability to find a borrower comes first./g' \
+        -e 's/\{\{CORE_LOOP\}\}/A librarian records the loan, finds it when the item comes back, and records the return./g' \
+        -e 's/\{\{DESIGN_PRINCIPLES\}\}/Keep borrower names visible only at the staffed desk./g' \
+        -e 's/\{\{BOUNDARIES\}\}/Limit the trial to one desk. Do not collect fines./g' \
+        -e 's/\{\{RISKS\}\}/If a librarian cannot identify the borrower, pause the trial and review the record./g' \
+        -e 's/\{\{WORKING_AGREEMENT\}\}/Create a task for work affecting a loan or return. Reserve To Do for approved items; keep proposals in drafts./g' \
+        -e 's/\{\{REVIEW_POLICY\}\}/Ask the head librarian to review changes to borrower access before implementation./g' \
+        -e 's/\{\{PLAN_PURPOSE\}\}/Librarians need to see who has borrowed each item without reconciling paper slips./g' \
+        -e 's/\{\{GOALS\}\}/A librarian can identify who has an item during a desk enquiry./g' \
+        -e 's/\{\{SUCCESS_CRITERIA\}\}/In a desk trial, a librarian can record a return and find the item without help./g' \
+        -e 's/\{\{PLAN_SCOPE\}\}/The first release covers loans and returns at one desk. Fines are out of scope./g' \
+        -e 's/\{\{CONSTRAINTS\}\}/Only desk staff may see borrower names./g' \
+        -e 's/\{\{PLANNING_ASSUMPTIONS\}\}/The first trial assumes one staffed desk. Revisit the design before adding a second./g' \
+        -e 's/\{\{ROADMAP\}\}/First prove the return workflow at one desk, then assess a second location./g' \
+        -e 's/\{\{GLOSSARY\}\}/A loan is the period from handing over an item to recording its return./g' \
+        -e 's/\{\{DIRECTION_QUESTIONS\}\}/The head librarian must decide whether the trial needs more than one location./g' \
+        -e 's/\{\{([A-Z0-9_]+)\}\}/value-\1/g'
 }
 
 replace_literal() {
@@ -114,7 +129,7 @@ trap 'rm -rf "${TMP}"' EXIT
 
 render_scenario() {
     local name="$1" enabled="$2"
-    local root="${TMP}/${name}" rendered delegation_policy
+    local root="${3:-${TMP}/${name}}" rendered delegation_policy settings
     mkdir -p "${root}/.backlog/masterplan" "${root}/.backlog/tasks" \
         "${root}/.backlog/brainstorming"
 
@@ -132,6 +147,26 @@ render_scenario() {
     render_one "${TEMPLATES_DIR}/AGENTS.md.tmpl" "$enabled" "${root}/AGENTS.md"
     render_one "${TEMPLATES_DIR}/KICKOFF-BRIEF.md.tmpl" "$enabled" "${root}/.backlog/brainstorming/KICKOFF-BRIEF.md"
     render_one "${TEMPLATES_DIR}/TASK-TREE.md.tmpl" "$enabled" "${root}/.backlog/brainstorming/TASK-TREE.md"
+
+    local truth='[Manifesto](MANIFESTO.md) and [masterplan](.backlog/masterplan/MASTERPLAN.md)'
+    if label_enabled specs "$enabled"; then truth="[Approved domain specs](docs/specs/README.md) for covered behavior; otherwise $truth"; fi
+    if label_enabled openspec "$enabled"; then truth='[Specification source map](docs/spec-workflow.md)'; fi
+    replace_literal "${root}/MANIFESTO.md" 'value-ARCHITECTURE_TRUTH' "$truth"
+
+    mkdir -p "${root}/scripts"
+    if [ ! -f "${root}/.backlog/config.yml" ]; then
+        printf 'project_name: Loan Desk\nstatuses: [To Do, In Progress, Done]\n' > "${root}/.backlog/config.yml"
+    fi
+    settings='{"project":"Loan Desk","intro":"Loan Desk helps librarians lend equipment and record its return.","config":".backlog/config.yml","view":"WORKPLAN.md","masterplan":".backlog/masterplan/MASTERPLAN.md","statuses":{"To Do":"ready","In Progress":"active","Done":"done"}}'
+    render_one "${TEMPLATES_DIR}/workplan.rb.tmpl" "$enabled" "${root}/scripts/workplan.rb"
+    replace_literal "${root}/scripts/workplan.rb" value-WORKPLAN_SETTINGS "$settings"
+    replace_literal "${root}/.backlog/brainstorming/KICKOFF-BRIEF.md" value-WORKPLAN_SETTINGS "$settings"
+    (cd "$root" && ruby scripts/workplan.rb --stdout > WORKPLAN.md && ruby scripts/workplan.rb --check)
+    grep -q 'No executable work has been defined yet' "${root}/WORKPLAN.md" || fail "${name}: empty board misrepresented"
+    grep -qF '](WORKPLAN.md)' "${root}/AGENTS.md" || fail "${name}: guide lost workplan link"
+    grep -qF '](.backlog/masterplan/MASTERPLAN.md)' "${root}/AGENTS.md" || fail "${name}: guide lost masterplan link"
+    grep -qF '](../../WORKPLAN.md)' "${root}/.backlog/masterplan/MASTERPLAN.md" || fail "${name}: masterplan lost workplan link"
+    grep -qF '](.backlog/masterplan/MASTERPLAN.md)' "${root}/WORKPLAN.md" || fail "${name}: workplan lost masterplan link"
 
     delegation_policy='Use one primary agent. No standing delegation authorization.'
     if label_enabled delegation "$enabled" && [ "$name" != roles-single-agent ]; then
@@ -158,7 +193,8 @@ render_scenario() {
         replace_literal "${root}/docs/spec-workflow.md" 'value-BACKLOG_DIR' '.backlog'
         replace_literal "${root}/docs/spec-workflow.md" 'value-SPEC_SOURCE_MAP' \
             '- Constitution: [Manifesto](../MANIFESTO.md).
-- Outcomes: [Masterplan](../.backlog/masterplan/MASTERPLAN.md).'
+- Outcomes: [Masterplan](../.backlog/masterplan/MASTERPLAN.md).
+- Daily progress: [Workplan](../WORKPLAN.md).'
         render_one "${TEMPLATES_DIR}/openspec-config.yaml.tmpl" "$enabled" "${root}/openspec/config.yaml"
         cp -R "${SKILL_DIR}/assets/openspec" "${root}/openspec/schemas"
         if [ "$name" = openspec-baseline ]; then
@@ -246,6 +282,12 @@ render_scenario() {
     # the two fixed Markdown tables.
     [ "$(grep -c '^| --- | --- |$' "${root}/MANIFESTO.md")" -eq 1 ] || fail "${name}: Manifesto table structure changed"
 }
+
+# Reuse the same document proposals for the real-board recovery test.
+if [ "${1:-}" = --fixture ]; then
+    render_scenario minimal '' "$2"
+    exit "$errors"
+fi
 
 render_scenario minimal ''
 render_scenario specs-only 'specs'

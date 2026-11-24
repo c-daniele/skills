@@ -1,7 +1,7 @@
 # Phase 1 - Scoping interview
 
 This phase collects enough approved information to write the project's
-constitution, current plan and working agreement without inventing policy.
+constitution, project direction, daily reading view and working agreement without inventing policy.
 
 ## Discipline
 
@@ -37,14 +37,14 @@ topics; update them at each transition described in `SKILL.md`.
 | 2 | Problem and motivation | problem, why now, cost of inaction | Manifesto |
 | 3 | Users and priorities | jobs, primary/secondary users, tie-break rule | Manifesto |
 | 4 | Core loop and interfaces | 3-7 actor steps; interfaces and their priority when multiple | Manifesto |
-| 5 | Goals, current state and roadmap | at most five measurable outcomes; present state; ordered delivery outcomes | Masterplan |
+| 5 | Goals, planning assumptions and milestones | at most five measurable outcomes; premises and ordered delivery outcomes | Masterplan |
 | 6 | Design principles | project-specific rules that resolve design trade-offs | Manifesto |
 | 7 | Non-goals and boundaries | explicit “will not” list | Manifesto |
 | 8 | Risks | accepted risk, mitigation or trigger for each | Manifesto |
 | 9 | Success criteria | observable review and pivot signals | Masterplan |
 | 10 | Constraints, stack and commands | fixed constraints; known setup and verification commands | Masterplan, Agent Guide, optional standards |
 | 11 | Glossary | ambiguous domain terms and winning meanings | Masterplan |
-| 12 | Working agreement | task threshold, language, journal/ADR, Git, review and delegation policies, optional role contracts/standards | Agent Guide, optional role contracts/standards |
+| 12 | Working agreement | task threshold, status meanings for the workplan, language, journal/ADR, Git, review and delegation policies, optional roles/standards | Agent Guide, workplan helper, optional roles/standards |
 | 13 | Specifications | profile, ownership, depth policy and any approved initial behavior | optional `docs/specs/`, or hybrid workflow and OpenSpec artifacts |
 
 ## Topics
@@ -96,7 +96,7 @@ Ask:
 The loop should have 3-7 actor-owned steps. Keep the `surfaces` conditional only
 when multiple interfaces have an approved hierarchy.
 
-### 5. Goals, current state and roadmap
+### 5. Goals, planning assumptions and milestones
 
 Ask:
 
@@ -104,13 +104,14 @@ Ask:
   worthwhile?
 - What number or observable event demonstrates each outcome?
 - Which outcome is first and which are explicitly later?
-- What exists at kickoff: empty repository, prototype, research or another
-  starting state?
-- What ordered delivery outcomes connect the current state to those goals?
+- What does the plan rely on? Has a verified result changed what the team can
+  reasonably assume? What evidence supports that premise?
+- Which major milestones connect those assumptions to the goals? Which open
+  decisions could change scope, constraints or direction?
 
 Limit the top-level list to five outcomes. Activities such as “build X” belong
-in the roadmap, not in goals. Capture separate `Where we are` and `Roadmap`
-content in the brief so an interrupted kickoff can reproduce the masterplan.
+in Backlog unless they describe a major delivery outcome. Preserve the premises
+and milestone outcomes in the brief; daily progress comes from the board.
 
 ### 6. Design principles
 
@@ -169,7 +170,7 @@ Ask:
 
 Never invent commands in a greenfield repository. If no executable setup or
 verification command exists yet, omit the corresponding `setup` or `tests`
-block from `AGENTS.md` and add an open question to establish it. The same rule
+block from `AGENTS.md` and note the missing decision in its working agreement. The same rule
 applies to language sections in coding standards.
 
 ### 11. Glossary
@@ -183,6 +184,9 @@ task; do not define everyday words.
 Ask and record each policy separately:
 
 - What work requires a Backlog task, and what qualifies as a mechanical change?
+- Which board statuses mean proposed, authorized to start, active, waiting,
+  set aside and successfully completed? Use the actual config. Record the
+  agreed meanings and paths as [workplan settings](workplan.md) in the brief.
 - Which language applies to project records, code comments, documentation and
   product copy? Do not assume product copy is English.
 - Should every completed task create a journal entry, only significant work, or
@@ -256,7 +260,9 @@ documents-only checkpoint leaves that change open with no generated tasks.
 
 For every deferred answer:
 
-1. Add the question with context to the masterplan's `Open questions` section.
+1. Record the question and owner in the brief. Put direction-changing questions
+   in the masterplan; process questions in the guide; item-specific unknowns in
+   the relevant Backlog record when it exists. Do not create work for a deferral.
 2. If a selected document depends on a temporary answer, put
    `Assumption: <choice and reason>` next to the dependency as well.
 3. If no temporary answer is needed, do not invent one.

@@ -13,7 +13,9 @@ Structure is loosely inspired by [mattpocock/skills](https://github.com/mattpoco
 
 ### Agentic kickoff profiles
 
-- Project context and Backlog.md, with optional plain Markdown specifications.
+- Every new kickoff includes a masterplan for direction and a root `WORKPLAN.md`
+  for daily progress, generated from Backlog.md even when no tasks exist.
+  Plain Markdown specifications are optional.
 - [OpenSpec + Backlog](skills/agentic-kickoff/references/spec-driven-workflow.md):
   direct tasks for contract-preserving work, lean behavior specs, and a design
   artifact only when technical decisions need it.

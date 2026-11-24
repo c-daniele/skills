@@ -29,7 +29,7 @@ validate its project identity against the board and any existing identity owner.
 
 ## Step 1 - Read context and derive candidate work
 
-Read the Manifesto, masterplan, Agent Guide and every approved domain spec that
+Read the Manifesto, masterplan, workplan (where installed), Agent Guide and every approved domain spec that
 applies, or the equivalent owners in the brownfield source map. For OpenSpec,
 read `docs/spec-workflow.md` plus the selected change's approved proposal, delta
 specs, applicable baseline and design. Run `backlog instructions overview` and
@@ -68,7 +68,9 @@ Cover one topic per message until the workstream is specific to this project:
    authorized?
 7. **Verification** - what objective evidence proves the outcome?
 8. **Dependencies and ordering** - what must precede it and what can run in
-   parallel?
+   parallel? What decision or input is missing and who can provide it? What
+   active effort is expected, in person-hours, excluding calendar waits? Leave
+   an unknown estimate as “Not estimated yet”.
 9. **Out of scope** - what belongs to another task or later outcome?
 
 ## Step 3 - Propose the complete task tree
@@ -76,7 +78,9 @@ Cover one topic per message until the workstream is specific to this project:
 Read the active board's allowed values from `backlog task create --help`. For
 **every task, including epic parents**, present:
 
-- title and one-line outcome;
+- plain-language action title and one-line outcome; approved effort range when
+  known and any `Waiting for:` condition/owner in the description, following
+  [the workplan record conventions](workplan.md);
 - description explaining the user or project need;
 - one or more testable, independent acceptance criteria;
 - one type, priority and initial status from that board's configured values. The
@@ -96,7 +100,8 @@ spec”. Cover every changed scenario with a task or named existing verification
 evidence. Do not mirror these tasks in an OpenSpec checklist or delivery ledger.
 
 Adjust and re-present the complete tree after scope changes. Approval applies to
-the exact tree shown, including parent acceptance criteria.
+the exact tree shown, including parent acceptance criteria. Approval to record
+a proposed item is not approval to execute it; retain its actual status/label.
 
 ## Step 4 - Create and verify tasks
 
@@ -148,13 +153,14 @@ proposal.
 If interrupted, verify each recorded ID against its approved entry. For an
 unresolved attempt, search by its exact title and creation-time window, then
 compare every approved field. Adopt exactly one exact match; retry only when no
-match exists; stop on multiple or partial matches. Delete decomposition state
-only after every approved task passes verification.
+match exists; stop on multiple or partial matches. Refresh the installed workplan
+from these records and check it before deleting the verified decomposition state.
 
 ## Assumptions and open questions
 
-- A deferred question with no dependent choice is recorded only as a masterplan
-  open question, or in the brownfield source map's designated question owner.
+- Route a deferred question to its owner. A decision that may change the
+  direction belongs in the masterplan; a task-specific hold belongs on the task.
+  For brownfield use the source map's designated owner.
 - A temporary choice that could affect design is recorded **both** as a
   question in the designated owner and as `Assumption: ...` in every dependent
   task. Unresolved business behavior cannot become an approved normative rule.
@@ -170,8 +176,8 @@ Report all recorded assumptions and their related open questions.
 - Every task, including parents, has at least one acceptance criterion.
 - Parentage, dependencies and references resolve.
 - No implementation plan was invented for future work.
-- Every design-affecting assumption has a question in the masterplan or the
-  brownfield source map's designated question owner.
+- Each design-affecting assumption has a question in its owner (masterplan for
+  direction or planning premises; otherwise the design, task or brownfield owner).
 - For OpenSpec, all changed scenarios have a task/evidence mapping, the expected
   change label and resolvable spec references. Task creation is not implementation
   completion and does not authorize archiving the change.

@@ -12,8 +12,9 @@ can be selected with any specification profile.
 For each selected template:
 
 1. Replace every `{{PLACEHOLDER}}` in selected content with approved content.
-   Unknown values become questions in the masterplan or the brownfield source
-   map's question owner; use an `Assumption:` only when the rendered file truly
+   Route unknowns to the concern's owner: direction to the masterplan, process
+   to the guide, task-specific waits to Backlog, or use the brownfield source
+   map's question owner. Use an `Assumption:` only when the rendered file truly
    requires a temporary choice. A placeholder in a block that will be deleted
    does not require a value.
    Preserve the template's indentation on every line of multiline values. In
@@ -23,7 +24,9 @@ For each selected template:
    - If applicable, retain its content and delete the `BEGIN` and `END` marker
      lines without leaving extra blank lines that break Markdown structures.
    - If inapplicable, delete the complete block, including both marker lines.
-3. Delete every complete `<!-- guidance: ... -->` comment.
+3. Delete every complete `<!-- guidance: ... -->` comment. For the workplan,
+   render its helper's settings and use [its stdout](workplan.md) as the exact
+   proposal; never ask the agent to compose or synchronize rows by hand.
 4. Verify that no `{{`, `<!-- BEGIN:`, `<!-- END:` or `guidance:` remains.
 
 Conditional markers are rendering syntax and never appear in generated files.
@@ -39,7 +42,7 @@ Templates may use only the placeholders below.
 | --- | --- | --- |
 | `{{PROJECT_NAME}}` | Human-readable project name | all document templates |
 | `{{PROJECT_SLUG}}` | Repository or directory slug | kickoff brief, masterplan |
-| `{{ONE_LINER}}` | One-sentence project description | brief, Manifesto, Agent Guide |
+| `{{ONE_LINER}}` | One-sentence project introduction | brief, Manifesto, masterplan, Agent Guide |
 | `{{DATE}}` | Rendering date in `YYYY-MM-DD` | kickoff brief |
 | `{{KICKOFF_STATUS}}` | Current artifact workflow state | kickoff/adoption brief |
 | `{{INITIAL_PATH_INVENTORY}}` | Paths present before setup | kickoff/adoption brief |
@@ -53,15 +56,18 @@ Templates may use only the placeholders below.
 | `{{BOUNDARIES}}` | Non-goals, exclusions and unsupported modes | brief, Manifesto |
 | `{{RISKS}}` | Accepted risks with mitigation or revisit trigger | brief, Manifesto |
 | `{{ARCHITECTURE_TRUTH}}` | Owner of covered and uncovered architecture behavior | Manifesto |
-| `{{WHERE_WE_ARE}}` | Current-state paragraph | kickoff brief, masterplan |
+| `{{PLAN_PURPOSE}}` | Brief summary of the approved audience, need and motivation | masterplan |
+| `{{PLAN_SCOPE}}` | What's included and excluded, summarized from the approved outcomes and Manifesto boundaries | masterplan |
+| `{{PLANNING_ASSUMPTIONS}}` | What the plan relies on, including verified results only when they change a forward-looking premise | brief, masterplan |
+| `{{DIRECTION_QUESTIONS}}` | Only open decisions that could change the direction; who decides and what hinges on the answer, when known | masterplan |
+| `{{WORKPLAN_SETTINGS}}` | JSON containing approved project name, introduction, paths and board-status meanings; see workplan setup | brief, workplan generator |
 | `{{GOALS}}` | Ordered measurable outcomes | brief, masterplan |
 | `{{SUCCESS_CRITERIA}}` | Review and pivot signals | brief, masterplan |
 | `{{CONSTRAINTS}}` | Fixed stack and operating constraints | brief, masterplan |
 | `{{ROADMAP}}` | Ordered outcomes/epics, not task-level status | kickoff brief, masterplan |
 | `{{GLOSSARY}}` | Domain terms and winning definitions | brief, masterplan |
-| `{{OPEN_QUESTIONS}}` | Deferred questions with context | brief, masterplan |
+| `{{OPEN_QUESTIONS}}` | Deferred questions with context and durable owner | temporary briefs and task tree |
 | `{{DECISIONS_INDEX}}` | Decision links, or an approved empty-state sentence | masterplan |
-| `{{JOURNAL_INDEX}}` | Journal links, or an approved empty-state sentence | masterplan |
 | `{{WORKING_AGREEMENT}}` | Approved task, communication and collaboration rules | brief, Agent Guide |
 | `{{DELEGATION_POLICY}}` | Approved allowed roles, triggers, required/advisory review, limits and fallback; includes explicit single-agent decisions | kickoff/adoption brief, Agent Guide, guide addition |
 | `{{AGENT_GUIDE_LINK}}` | Markdown link from the role document to the actual policy-owning guide, adjusted for its location | role contracts |
@@ -136,8 +142,8 @@ block inside role contracts only when that workflow is selected too.
 | Fact | Owner |
 | --- | --- |
 | Purpose, users, priority, core loop, principles, boundaries and risks | `MANIFESTO.md` |
-| Current state, goals, success criteria, constraints, roadmap, glossary and open questions | `.backlog/masterplan/MASTERPLAN.md` |
-| Executable work and status | `.backlog/tasks/` through the CLI |
+| Goals, success criteria, constraints, major milestones, planning assumptions, glossary and direction-changing decisions | `.backlog/masterplan/MASTERPLAN.md`; summarize purpose, audience and boundaries from the constitution |
+| Proposals, executable work, status, dependencies, effort, blockers and actual evidence | Backlog tasks/drafts through the CLI; `WORKPLAN.md` is their generated reading view |
 | Working, review and Git agreements | `AGENTS.md` |
 | Approved delegation policy and required/advisory review choices | applicable project agent guide |
 | Role responsibilities, handoff and review-result contracts | `docs/agent-roles.md`, when selected |
@@ -162,7 +168,7 @@ Render `{{ARCHITECTURE_TRUTH}}` accordingly:
   current behavioral contracts, approved change deltas and technical design.
 
 For a fresh hybrid kickoff, the source map names the Manifesto (constitution),
-masterplan (outcomes, constraints, roadmap and open questions), OpenSpec baseline
+masterplan (direction), workplan (generated daily view), OpenSpec baseline
 and change paths, Backlog tasks (execution/evidence), and the actual decision
 owner when enabled. Code is observed evidence, not an automatic normative owner.
 For brownfield, render the actual existing owners and actual board path. Do not
@@ -175,6 +181,8 @@ their content.
 <project>/
 ├── MANIFESTO.md
 ├── AGENTS.md
+├── WORKPLAN.md                         # read daily progress here, even with zero tasks
+├── scripts/workplan.rb                 # regenerate or check the reading view
 ├── docs/                              # only when an optional doc is selected
 │   ├── coding-standards.md            # optional
 │   ├── agent-roles.md                 # optional, independent of spec profile
@@ -254,9 +262,11 @@ transaction manifest then means:
 
 Never delete or overwrite different content while recovering. A mismatch is a
 conflict to report, not permission to restart or regenerate approved content.
-Install each absent destination atomically: copy to a temporary file in the same
-parent directory, verify its staged checksum, then rename it into place. Never
-stream or truncate a final destination.
+Install each create-only entry with the [installer](../scripts/install-approved.sh):
+`bash <skill>/scripts/install-approved.sh <staged-file> <project-relative-destination> <approved-sha256>`.
+It checks even already-installed entries and publishes missing files from the same
+directory without clobbering a destination. On recovery use the original manifest;
+adding a workplan to an older completed kickoff is a separate approved update.
 
 ## Backlog mutation boundaries
 

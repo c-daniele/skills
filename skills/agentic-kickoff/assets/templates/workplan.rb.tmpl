@@ -1,0 +1,185 @@
+# Run from the project root. Only the JSON after __END__ is project-specific.
+require 'yaml'
+require 'date'
+require 'json'
+require 'pathname'
+require 'digest'
+require 'tempfile'
+require 'cgi'
+
+SETTINGS = JSON.parse(DATA.read)
+ROOT = Pathname.pwd.realpath
+VIEW = Pathname.new(SETTINGS.fetch('view')).cleanpath
+
+def local(path)
+  Pathname.new(path).realpath.relative_path_from(ROOT).tap do |rel|
+    abort "Path outside the project: #{path}" if rel.each_filename.first == '..'
+  end
+end
+
+def url(path)
+  Pathname.new(path).relative_path_from(VIEW.dirname).each_filename.map do |part|
+    CGI.escape(part).gsub('+', '%20')
+  end.join('/')
+end
+
+def text(value)
+  CGI.escapeHTML(value.to_s.gsub(/\s+/, ' ').strip).gsub(/[\\`*_\[\]|~]/) { |c| "\\#{c}" }
+end
+
+def action(row)
+  "#{text(row[:title])} ([#{text(row[:id])}](#{url(row[:path])}))"
+end
+
+def field(body, section, name)
+  body[/^<!-- SECTION:#{section}:BEGIN -->\r?\n(.*?)^<!-- SECTION:#{section}:END -->/m, 1]
+    .to_s.scan(/^#{name}:[ \t]*([^\r\n]+)$/i).flatten.map(&:strip).reject(&:empty?)
+end
+
+def read_record(file, store)
+  header, body = File.read(file, encoding: 'UTF-8').split(/^---[ \t]*\r?\n/, 3).drop(1)
+  abort "Missing record frontmatter: #{file}" unless body
+  data = YAML.safe_load(header, permitted_classes: [Date, Time])
+  status = data.fetch('status')
+  kind = SETTINGS.fetch('statuses').fetch(status, 'unmapped')
+  kind = 'proposal' if store == 'drafts' || Array(data['labels']).any? { |l| l.casecmp('proposal').zero? }
+  { id: data.fetch('id'), title: data.fetch('title'), status: status, kind: kind, path: local(file),
+    stored: %w[completed archive/tasks].include?(store), dependencies: Array(data['dependencies']),
+    parent: data['parent_task_id'], ordinal: data['ordinal'] || Float::INFINITY, priority: data['priority'],
+    date: (data['updated_date'] || data['created_date']).to_s,
+    effort: field(body, 'DESCRIPTION', 'Effort').last || 'Not estimated yet',
+    waits: field(body, 'DESCRIPTION', 'Waiting for'),
+    evidence: field(body, 'NOTES', 'Verified') + field(body, 'FINAL_SUMMARY', 'Verified') }
+end
+
+def render
+  config_path = local(SETTINGS.fetch('config'))
+  config = YAML.safe_load(File.read(config_path))
+  abort 'Backlog project name mismatch' unless config.fetch('project_name') == SETTINGS.fetch('project')
+  board = local(config.fetch('backlog_directory', config_path.dirname.to_s))
+  statuses = SETTINGS.fetch('statuses')
+  kinds = %w[active ready proposal waiting done inactive]
+  abort 'Review the workplan status meanings against the board config' unless
+    statuses.keys.sort == config.fetch('statuses').sort && (statuses.values - kinds).empty?
+
+  rows = %w[tasks drafts completed archive/tasks].flat_map do |store|
+    dir = board / store
+    next [] unless dir.directory?
+    dir.children.select { |f| f.extname == '.md' && f.file? }.sort.map { |f| read_record(f, store) }
+  end
+  by_id = rows.map { |r| [r[:id].upcase, r] }.to_h
+  abort 'Conflicting record IDs; reconcile the board first' if by_id.size != rows.size
+  priorities = config.fetch('priorities', %w[High Medium Low]).map(&:downcase)
+  open = rows.reject { |r| r[:stored] || r[:kind] == 'done' }.sort_by do |r|
+    [r[:ordinal], priorities.index(r[:priority].to_s.downcase) || priorities.size, r[:id]]
+  end
+  groups = Hash.new { |h, k| h[k] = [] }
+  children = open.group_by { |r| r[:parent].to_s.upcase }
+  open.each do |r|
+    blocked = !r[:waits].empty?
+    reasons = r[:waits].map { |s| text(s) }
+    r[:dependencies].each do |id|
+      dep = by_id[id.upcase]
+      finished = dep && dep[:kind] == 'done'
+      blocked ||= !finished
+      reasons << if finished
+                   "After #{action(dep)} (complete)."
+                 elsif dep
+                   "Wait for: #{action(dep)} (#{text(dep[:status])})."
+                 else
+                   "Confirm the missing dependency #{text(id)}."
+                 end
+    end
+    kind = r[:kind]
+    if %w[ready active].include?(kind) && blocked
+      kind = 'waiting'
+    elsif kind == 'unmapped'
+      reasons << 'Confirm what this status allows.'
+    elsif kind == 'waiting' && !blocked
+      reasons << 'The reason and owner are not recorded yet.'
+    elsif kind == 'proposal' && r[:waits].empty?
+      reasons << 'Scope or approval is still needed.'
+    end
+    r[:children] = children.fetch(r[:id].upcase, [])
+    reasons << "Includes #{r[:children].size} open activities." unless r[:children].empty?
+    r[:reason] = reasons.join(' ')
+    groups[kind] << r
+  end
+
+  out = ["# #{text(SETTINGS.fetch('project'))} workplan", '', text(SETTINGS.fetch('intro')), '',
+         "Read this page for progress; the [masterplan](#{url(SETTINGS.fetch('masterplan'))}) explains the direction.", '']
+  # Schedule the open slices of an epic, not the same work twice.
+  candidates = (groups['active'] + groups['ready']).select { |r| r[:children].empty? }
+  first = candidates.first
+  if first
+    state = first[:kind] == 'active' ? 'already in progress' : 'ready to start'
+    out << "**Next action:** #{action(first)} — #{state}."
+    parallel = candidates.first(2)
+    out << "**In parallel:** No recorded dependency prevents #{parallel.map { |r| action(r) }.join(' and ')} from proceeding together, if people are available." if parallel.size == 2
+  elsif (r = groups['waiting'].first || groups['proposal'].first || groups['unmapped'].first)
+    out << "**Next:** Resolve what is needed for #{action(r)}: #{r[:reason]}"
+  elsif rows.empty?
+    out << 'No executable work has been defined yet. The next planning step, if requested, is to agree the first task.'
+  else
+    out << 'There is no approved work ready to start. Agree the next step before starting more work.'
+  end
+
+  out += ['', '## What has been verified', '']
+  evidence = rows.select { |r| !r[:evidence].empty? }.sort_by { |r| [r[:date], r[:id]] }.reverse
+  if evidence.empty?
+    out << 'No checks have a reported result here yet.'
+  else
+    evidence.first(3).each { |r| out << "- #{text(r[:evidence].last)} — #{action(r)}" }
+    out << 'Showing the latest recorded check from each of the three most recently updated records with evidence.' if evidence.size > 3
+  end
+  done = rows.count { |r| r[:kind] == 'done' }
+  out << "\n#{done} marked complete in Backlog. Completion status alone does not verify a result." if done.positive?
+  out += ['', '## Work ahead', '', 'Effort is measured in person-hours: one person working for one hour. It excludes waiting time and does not predict a finish date.', '']
+  if open.empty?
+    out << 'No open activities.'
+  else
+    headings = { 'active' => 'In progress', 'ready' => 'Ready to start', 'waiting' => 'Waiting',
+                 'proposal' => 'Proposed', 'inactive' => 'Set aside', 'unmapped' => 'Needs clarification' }
+    table = ['| Action | State | Active effort | What matters next |', '| --- | --- | --- | --- |']
+    out.concat(table)
+    overflow = []
+    headings.each do |kind, heading|
+      groups[kind].each_with_index do |r, i|
+        status = text(r[:status])
+        state = heading.casecmp(status).zero? ? status : "#{heading} (#{status})"
+        (i < 2 ? out : overflow) << "| #{action(r)} | #{state} | #{text(r[:effort])} | #{r[:reason]} |"
+      end
+    end
+    out += ['', "<details><summary>#{overflow.size} more activities</summary>", '', *table, *overflow, '', '</details>'] unless overflow.empty?
+  end
+  out += ['', "Source: [Backlog records](#{url(board)}). The agent updating the records refreshes this page.", '']
+  page = out.join("\n")
+  page + "<!-- generated-workplan: #{Digest::SHA256.hexdigest(page)} -->\n"
+end
+
+mode = ARGV.first
+abort 'Usage: ruby scripts/workplan.rb --stdout | --check | --write' unless ARGV.size == 1 && %w[--stdout --check --write].include?(mode)
+abort 'Use a project-relative view path' if VIEW.absolute? || VIEW.each_filename.first == '..'
+page = render
+if mode == '--stdout' # Preview against the real board before staged installation.
+  print page
+else
+  abort 'The linked masterplan is missing' unless local(SETTINGS.fetch('masterplan')).file?
+  abort "Missing or linked #{VIEW}; restore the approved file" unless VIEW.file? && !VIEW.symlink?
+  local(VIEW)
+  old = VIEW.read(encoding: 'UTF-8')
+  exit 0 if page == old
+  abort "#{VIEW} is stale or edited" if mode == '--check'
+  match = old.match(/\A(.*)<!-- generated-workplan: ([0-9a-f]{64}) -->\n\z/m)
+  abort "Conflicting edit in #{VIEW}; preserve and reconcile it" unless match && Digest::SHA256.hexdigest(match[1]) == match[2]
+  Tempfile.create('.workplan', VIEW.dirname.to_s) do |f|
+    f.write(page)
+    f.close
+    File.chmod(VIEW.stat.mode & 0o777, f.path)
+    abort "Concurrent edit in #{VIEW}" unless VIEW.read(encoding: 'UTF-8') == old
+    File.rename(f.path, VIEW)
+  end
+end
+
+__END__
+{{WORKPLAN_SETTINGS}}

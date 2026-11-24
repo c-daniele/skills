@@ -140,7 +140,7 @@ while IFS= read -r ref; do
 done < <(find "${REFERENCES_DIR}" -type f -name '*.md' | sort)
 
 # --- 5. Templates -----------------------------------------------------------
-expected_templates="MANIFESTO.md.tmpl MASTERPLAN.md.tmpl AGENTS.md.tmpl coding-standards.md.tmpl KICKOFF-BRIEF.md.tmpl TASK-TREE.md.tmpl specs-README.md.tmpl SPEC.md.tmpl"
+expected_templates="MANIFESTO.md.tmpl MASTERPLAN.md.tmpl workplan.rb.tmpl AGENTS.md.tmpl coding-standards.md.tmpl KICKOFF-BRIEF.md.tmpl TASK-TREE.md.tmpl specs-README.md.tmpl SPEC.md.tmpl"
 expected_templates="${expected_templates} spec-workflow.md.tmpl openspec-config.yaml.tmpl AGENTS-spec-workflow.md.tmpl ADOPTION-BRIEF.md.tmpl OPENSPEC-BASELINE.md.tmpl BACKLOG-SPEC-TASK.md.tmpl"
 expected_templates="${expected_templates} agent-roles.md.tmpl AGENTS-delegation.md.tmpl DELEGATION-HANDOFF.md.tmpl REVIEW-RESULT.md.tmpl"
 for tmpl in ${expected_templates}; do
@@ -243,6 +243,8 @@ fi
 if [ -f "${SCRIPT_DIR}/test-openspec-integration.sh" ]; then
     bash "${SCRIPT_DIR}/test-openspec-integration.sh" || fail "OpenSpec integration test failed"
 fi
+
+ruby "${SCRIPT_DIR}/test-workplan.rb" || fail 'workplan integration/recovery failed'
 
 # --- Result -----------------------------------------------------------------
 if [ "${errors}" -gt 0 ]; then
